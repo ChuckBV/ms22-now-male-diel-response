@@ -7,8 +7,6 @@
 
 library(tidyverse)
 
-
-
 allsites19 <- read_csv("./data/allsites_y19.csv")
 allsites19
 # A tibble: 38,202 x 6
@@ -37,9 +35,9 @@ alltemps19
 
 alltemps20 <- read_csv("./data/trapview_temps_degf_y20.csv")
 alltemps20
-# A tibble: 18,969 x 6
-#   site      Date_time           degf_avg degf_lo degf_hi rh_avg
-#   <chr>     <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
-# 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
-# 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
-# 3 UCKearney 2019-05-16 19:00:00     55.0    53.8    56.8   90.4
+# A tibble: 17,580 x 6
+#   Date_time           degf_avg degf_lo degf_hi rh_avg site 
+#   <dttm>                 <dbl>   <dbl>   <dbl>  <dbl> <chr>
+# 1 2020-04-22 02:00:00     51.5    50.2    52.5   90.3 MWT1 
+# 2 2020-04-22 03:00:00     49.5    48.9    49.8   93.8 MWT1 
+# 3 2020-04-22 04:00:00     49.7    48.9    50.4   94.2 MWT1 
