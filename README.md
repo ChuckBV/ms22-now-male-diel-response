@@ -19,3 +19,8 @@ abundance was found the previous year.
 of trap events for trhe two years. The _y19 and _y20 temperature
 files are temperature data reported by the traps over the same period.
 
+## Scripts
+ - **script0_head_data_files.R** Infile to load 4 relevant csv files
+ into dataframes in Global Environment, head these files (43 lines)
+ - **script1_y19_plot_weeks_hour.R** Creates a cool figure showing
+ flights for 2019
