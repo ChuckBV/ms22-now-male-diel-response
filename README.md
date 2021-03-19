@@ -1,2 +1,21 @@
-# ms-hengst-thesis-chap2-trapview
+# Data and Anlysis for Chapter 2, Foster Hengst Thesis 
+
+Repository: github.org/chuckbv/ms-hengst-thesis-chap2-trapview
+
 Simplified and cleaned version of Trapview data and analysis
+
+## Overview
+
+Five Trapview camera traps baited with pheromone lures were run over
+a two-year period to examine night-to-night and hourly variation in
+trap capture. The traps took photos once every 0.5 hours from 
+sunset to sunrise. In 2019 the five traps were in five different
+locations. In 2020 the traps were in one location where heavier
+abundance was found the previous year.
+
+## Data
+
+"allsites_y19.csv" and "allsites_y20.csv" are equivalevent files
+of trap events for trhe two years. The _y19 and _y20 temperature
+files are temperature data reported by the traps over the same period.
+
