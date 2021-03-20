@@ -92,6 +92,7 @@ plot_wkly_by_site <- ggplot(wkly2, aes(x = Date,y = orangeworm)) +
 # any width over 3.0 gives a warning about non-overlapping x intervals
 # I think it looks better with width = 5.0
   theme_bw() +
+  scale_x_date(date_breaks = "1 month") + #, date_labels = "%B")
   xlab("") +
   ylab("NOW per night") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
