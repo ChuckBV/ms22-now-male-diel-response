@@ -76,11 +76,23 @@ Obs_by_date <- allsites %>%
 
 #write.csv(Obs_by_date,"./data/table_counts_wk_by_site.csv")
 
+### Examine Obs_by_date after June 15
+Obs_by_date2 <- Obs_by_date %>% 
+  filter(caldate >= as.Date("2019-06-15"))
+
+Obs_by_date2 
+### STOPPED HERE
+
+plot_wkly_by_site <- ggplot(wkly2, aes(x = Date,y = orangeworm)) +
+  geom_col(width = 10) +
+  
+
 ### Creat a plot of counts by week
 wkly <- allsites %>% 
   group_by(wk,caldate,site) %>% 
   summarize(Date = min(caldate),
             orangeworm = sum(pest_dif))
+
 wkly2 <- wkly %>% 
   group_by(wk,site) %>% 
   summarize(Date = min(Date),
