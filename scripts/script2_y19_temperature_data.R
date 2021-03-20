@@ -1,0 +1,74 @@
+#============================================================================
+# script2_y19_temperature_data.R
+#
+# Summarize temperature data from the 5 stations as preparation to 
+# association of count and temperature data
+#
+# PARTS
+#  1. Read in data and recode for useful time values (line 17)
+#       Not dealt with in useful manner until later script
+#  2. Summarize data with tables and graphs (line 55)
+#       Create daily profiles by site
+#
+#============================================================================
+
+library(tidyverse) # Preferred dialect of R
+library(lubridate) # Work with Dates
+library(timechange)
+
+#-- 1. Read in 2019 data --------------------------------------------------
+
+alltemps19 <- read_csv("./data/trapview_temps_degf_y19.csv")
+alltemps19
+# A tibble: 18,969 x 6
+#   site      Date_time           degf_avg degf_lo degf_hi rh_avg
+#   <chr>     <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
+# 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
+# 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
+# 3 UCKearney 2019-05-16 19:00:00     55.0    53.8    56.8   90.4
+
+### Set local time zone
+localtz <- "America/Los_Angeles"
+alltemps19$Date_time <- time_force_tz(alltemps19$Date_time, tz = localtz)
+
+#-- 2. Use plots to summarize -------------------------------------------
+
+### Subset to a single daily observation
+
+### Daily climate at 3AM
+three_am_daily19 <- alltemps19 %>% 
+  filter(hour(Date_time) == 3)
+three_am_daily19
+# A tibble: 792 x 6
+#   site      Date_time           degf_avg degf_lo degf_hi rh_avg
+#   <chr>     <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
+# 1 UCKearney 2019-05-17 03:00:00     52.3    51.6    52.9   90.5
+# 2 UCKearney 2019-05-18 03:00:00     49.1    48.6    49.5   97.6
+
+### Temperature at 3AM
+p1 <- ggplot(three_am_daily19, aes(x = Date_time, y = degf_avg)) +
+  geom_line() + 
+  facet_grid(site ~ .)
+p1
+
+### relative hummidity at 3AM
+p2 <- ggplot(three_am_daily19, aes(x = Date_time, y = rh_avg)) +
+  geom_line() + 
+  facet_grid(site ~ .)
+p2
+
+### Get Date value
+three_am_daily19 <- three_am_daily19 %>% 
+  mutate(caldate = as.Date(Date_time))
+
+#-- Load and merge count data -----------------------------------------------
+
+allsites <- read_csv("./data/allsites_y19.csv")
+allsites$datetime <- time_force_tz(allsites$datetime, tz = localtz)
+allsites$caldate <- as.Date(allsites$datetime) # Date-only variable
+
+allsites %>% 
+  group_by(site,caldate) %>% 
+  summarise(NOW = sum(pest_dif, na.rm = TRUE))
+
+

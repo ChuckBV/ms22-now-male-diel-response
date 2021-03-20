@@ -103,7 +103,7 @@ plot_wkly_by_site <- ggplot(wkly2, aes(x = Date,y = orangeworm)) +
 
 plot_wkly_by_site
 
-ggsave(filename = "Y19_trapview_wkly_by_site.jpg", plot_wkly_by_site, path = "./output",
+ggsave(filename = "Y19_trapview_wkly_by_site.jpg", plot_wkly_by_site, path = "./results",
        width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 
