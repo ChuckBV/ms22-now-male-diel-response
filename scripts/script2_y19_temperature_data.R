@@ -48,14 +48,44 @@ three_am_daily19
 ### Temperature at 3AM
 p1 <- ggplot(three_am_daily19, aes(x = Date_time, y = degf_avg)) +
   geom_line() + 
-  facet_grid(site ~ .)
+  facet_grid(site ~ .) +
+  theme_bw() + 
+  xlab("") +
+  ylab("degrees F") +
+  theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 9),
+        axis.title.x = element_text(color = "black", size = 9),
+        axis.title.y = element_text(color = "black", size = 9),
+        legend.title = element_text(color = "black", size = 14),
+        legend.text = element_text(color = "black", size = 14))
+
+
 p1
 
-### relative hummidity at 3AM
+ggsave(filename = "Y19_trapview_nightly_degf_yrlong.jpg", p1, path = "./results",
+       width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+
+### relative humidity at 3AM
 p2 <- ggplot(three_am_daily19, aes(x = Date_time, y = rh_avg)) +
   geom_line() + 
-  facet_grid(site ~ .)
+  facet_grid(site ~ .) +
+  theme_bw() + 
+  xlab("") +
+  ylab("degrees F") +
+  theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 9),
+        axis.title.x = element_text(color = "black", size = 9),
+        axis.title.y = element_text(color = "black", size = 9),
+        legend.title = element_text(color = "black", size = 14),
+        legend.text = element_text(color = "black", size = 14))
+
 p2
+
+ggsave(filename = "Y19_trapview_nightly_rh_yrlong.jpg", p1, path = "./results",
+       width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+
 
 ### Get Date value
 three_am_daily19 <- three_am_daily19 %>% 
