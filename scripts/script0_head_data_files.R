@@ -2,6 +2,8 @@
 # script0_head_data_files.R
 #
 # Show that file structures are equivalent
+# 1. Load 2019 and 2020 data sets
+# 2. Observations, time period and time interval
 #
 #===========================================================================#
 
@@ -20,7 +22,7 @@ allsites19
 allsites20 <- read_csv("./data/allsites_y20.csv")
 allsites20
 # A tibble: 31,726 x 6
-# datetime            pest_nmbr pest_dif reviewed event site      
+#   datetime            pest_nmbr pest_dif reviewed event site      
 #   <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>     
 # 1 2020-04-22 03:18:00         5        4 Yes      NA    mikewoolf1
 # 2 2020-04-22 05:02:00         7        2 Yes      NA    mikewoolf1
@@ -44,3 +46,43 @@ alltemps20
 # 2 2020-04-22 03:00:00     49.5    48.9    49.8   93.8 MWT1 
 # 3 2020-04-22 04:00:00     49.7    48.9    50.4   94.2 MWT1 
 
+#-- 2. Observations, time period and time interval  ---------------------------
+
+ovrvw_events19 <- allsites19 %>%
+  group_by(site) %>% 
+  summarise(nObs = sum(!is.na(pest_dif)),
+            min_date = as.Date(min(datetime)),
+            max_date = as.Date(max(datetime)))
+ovrvw_events19
+# A tibble: 5 x 4
+#   site         nObs min_date   max_date  
+#   <chr>       <int> <date>     <date>    
+# 1 MWoolf_east  6274 2019-06-04 2019-10-31
+# 2 MWoolf_west  7525 2019-05-22 2019-10-31
+# 3 Perez        7099 2019-06-03 2019-11-04
+# 4 UCKearney    8244 2019-04-26 2019-11-04
+# 5 usda         9056 2019-04-24 2019-10-31
+
+ovrvw_events20 <- allsites20 %>% 
+  group_by(site) %>% 
+  summarise(nObs = sum(!is.na(pest_dif)),
+            min_date = as.Date(min(datetime)),
+            max_date = as.Date(max(datetime)))
+ovrvw_events20
+# A tibble: 5 x 4
+# site        nObs min_date   max_date  
+#   <chr>      <int> <date>     <date>    
+# 1 mikewoolf1  5337 2020-04-22 2020-09-22
+# 2 mikewoolf2  7736 2020-03-12 2020-09-22
+# 3 mikewoolf3  6782 2020-04-21 2020-09-22
+# 4 mikewoolf4  8215 2020-03-06 2020-09-22
+# 5 mikewoolf5  3656 2020-07-07 2020-09-22
+
+### Get intervals
+#intervals_events19 <- 
+x <- allsites19 # Pass allsites19 to temp object x
+x <- x[ ,-5] # drop event which is 95% NA and not essential
+x <- x[complete.cases(x), ] # retains 95% of obs
+x$site <- factor(x$site, levels = unique(x$site))
+   # Looks like x has to be a factor for this to work
+y <- split(x, f = x$site)
