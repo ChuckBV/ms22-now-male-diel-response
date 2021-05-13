@@ -86,3 +86,5 @@ x <- x[complete.cases(x), ] # retains 95% of obs
 x$site <- factor(x$site, levels = unique(x$site))
    # Looks like x has to be a factor for this to work
 y <- split(x, f = x$site)
+
+# https://www.talkstats.com/threads/differences-between-elements-of-a-vector.13341/
