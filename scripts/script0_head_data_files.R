@@ -162,4 +162,34 @@ Mwwest2 <- MWoolf_west %>%
   summarise(nObs = n())
    # Before 2019-05-30 one image per hour; after 2
 
+MWoolf_east$caldat <- as.Date(MWoolf_east$datetime)
 
+Mweast2 <- MWoolf_east %>% 
+  group_by(caldat) %>% 
+  summarise(nObs = n())
+
+Mweast2
+
+Perez$caldat <- as.Date(Perez$datetime)
+
+Perez2 <- Perez %>% 
+  group_by(caldat) %>% 
+  summarise(nObs = n())
+
+Perez2
+
+UCKearney$caldat <- as.Date(UCKearney$datetime)
+
+UCKearney2 <- UCKearney %>% 
+  group_by(caldat) %>% 
+  summarise(nObs = n())
+
+UCKearney2
+
+usda$caldat <- as.Date(usda$datetime)
+
+usda2 <- usda %>% 
+  group_by(caldat) %>% 
+  summarise(nObs = n())
+
+usda2
