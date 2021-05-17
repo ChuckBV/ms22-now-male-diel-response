@@ -81,6 +81,20 @@ ovrvw_events20
 ### Get intervals
 #intervals_events19 <- 
 x <- allsites19 # Pass allsites19 to temp object x
+head(x)
+# A tibble: 6 x 6
+# datetime            pest_nmbr pest_dif reviewed event site     
+# <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>    
+# 1 2019-04-26 13:56:00         7        7 Yes      NA    UCKearney
+# 2 2019-04-26 14:56:00         7        0 Yes      NA    UCKearney
+# 3 2019-04-26 15:57:00         7        0 Yes      NA    UCKearney
+# 4 2019-04-26 16:56:00         7        0 Yes      NA    UCKearney
+# 5 2019-04-26 17:57:00         7        0 Yes      NA    UCKearney
+# 6 2019-04-26 18:57:00         7        0 Yes      NA    UCKearney
+
+unique(x$event) 
+# [1] NA                       "Sticky roll tweak"      "Replace of sticky roll"
+
 x <- x[ ,-5] # drop event which is 95% NA and not essential
 x <- x[complete.cases(x), ] # retains 95% of obs
 x$site <- factor(x$site, levels = unique(x$site))
@@ -161,6 +175,9 @@ Mwwest2 <- MWoolf_west %>%
   group_by(caldat) %>% 
   summarise(nObs = n())
    # Before 2019-05-30 one image per hour; after 2
+Mwwest2
+Mwwest2[Mwwest2$nObs > 25, ]
+  # First date with >25 is 5/31
 
 MWoolf_east$caldat <- as.Date(MWoolf_east$datetime)
 
@@ -169,6 +186,8 @@ Mweast2 <- MWoolf_east %>%
   summarise(nObs = n())
 
 Mweast2
+Mweast2[Mweast2$nObs > 25, ]
+  # First date with >25 is 6/14
 
 Perez$caldat <- as.Date(Perez$datetime)
 
