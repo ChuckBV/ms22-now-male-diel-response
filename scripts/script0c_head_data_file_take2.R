@@ -102,13 +102,7 @@ photos_pr_day19
 hist(photos_pr_day19$nObs)
   # Shows that 24 and 48 are strongly modal
 
-
-x <- photos_pr_day19
-#x <- photos_pr_day19[photos_pr_day19$nObs > 25, ] #778 obs
-#unique(x$nObs)
-## [1] 41 47 48 45 46 43 49 44 34 42 38 50 33 39 36 37 30 35 29 40 32 27 28 31 51 26
-
-x %>% 
+photos_pr_day19 %>% 
   group_by(nObs) %>% 
   summarise(events = n()) %>% 
   filter(events > 20)
@@ -122,139 +116,15 @@ x %>%
 # 5    48    414
 # 6    49     90
      
-    # To examine timing, select days with 47-49 camera events
+# To examine timing, select days with 47-49 camera events. 
+photos_30_min_yr19 <- photos_pr_day19[photos_pr_day19$nObs >= 47 & photos_pr_day19$nObs <= 49, ]
+photos_30_min_yr19
+# A tibble: 638 x 3
+# Groups:   site [5]
+# site        cal_date    nObs
+#   <chr>       <date>     <int>
+# 1 MWoolf_east 2019-06-15    47
+# 2 MWoolf_east 2019-06-16    47
 
-
-#intervals_events19 <- 
-x <- allsites19 # Pass allsites19 to temp object x
-head(x)
-# A tibble: 6 x 6
-# datetime            pest_nmbr pest_dif reviewed event site     
-# <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>    
-# 1 2019-04-26 13:56:00         7        7 Yes      NA    UCKearney
-# 2 2019-04-26 14:56:00         7        0 Yes      NA    UCKearney
-# 3 2019-04-26 15:57:00         7        0 Yes      NA    UCKearney
-# 4 2019-04-26 16:56:00         7        0 Yes      NA    UCKearney
-# 5 2019-04-26 17:57:00         7        0 Yes      NA    UCKearney
-# 6 2019-04-26 18:57:00         7        0 Yes      NA    UCKearney
-
-unique(x$event) 
-# [1] NA                       "Sticky roll tweak"      "Replace of sticky roll"
-
-x <- x[ ,-5] # drop event which is 95% NA and not essential
-x <- x[complete.cases(x), ] # retains 95% of obs
-x$site <- factor(x$site, levels = unique(x$site))
-   # Looks like x has to be a factor for this to work
-y <- split(x, f = x$site)
-y[[1]][1:6,] 
-y[[2]][1:6,] 
-y[[3]][1:6,] 
-y[[4]][1:6,] 
-y[[5]][1:6,] 
-   # split made this into a list containting 5 data frames. Notation above
-   # is a klunky way of heading each
-
-### Subset back out entire data sets
-UCKearney  <- y[[1]] 
-MWoolf_east  <- y[[2]] 
-MWoolf_west  <- y[[3]] 
-Perez  <- y[[4]] 
-usda <- y[[5]]
-
-### Pull all times out of y[[1]] (UCKearney) and place in a vector to examine
-### getting time differences
-dtimes1 <- y[[1]][,1]  # 8244 values
-dtimes1 <- dtimes1[!is.na(dtimes1)] 
-length(dtimes1) # 8244, no loss
-z <- dtimes1[1:10] # first 10 values
-
-### diff functions
-### https://www.talkstats.com/threads/differences-between-elements-of-a-vector.13341/
-### https://stackoverflow.com/questions/30510044/how-to-make-time-difference-in-same-units-when-subtracting-posixct
-
-a <- seq(1,10) # diff() with an integer variable
-diff(a)
-# [1] 1 1 1 1 1 1 1 1 1
-
-diff(z) # diff function with times from y$UCKearney
-# Time differences in mins
-# [1] 60 61 59 61 60 61 60 60 60
-
-### Use diff with the entire string and units()<- to control unit
-b <- diff(dtimes1)
-str(b)
-units(b) <- "mins"
-length(b) #8243 obs, 1 less than dtimes
-unique(b)
-
-difs1 <- as.integer(diff(y$UCKearney[,1])) # y$UCKearney is 8254 rows
-unique(difs1)
-
-### Try using diff within the dataframe
-MWoolf_west$dif_time[2:nrow(MWoolf_west)] <- diff(MWoolf_west$datetime)
-MWoolf_west$dif_time <- MWoolf_west$dif_time/60 
-    # manually convert from seconds to minutes
-
-### What time intervals are frequent?
-MWoolf_west %>% 
-  group_by(dif_time) %>% 
-  summarise(nObs = n()) %>% 
-  filter(nObs > 10)
-# A tibble: 9 x 2
-# dif_time  nObs
-#     <dbl> <int>
-# 1   0.0167    49
-# 2  25        118
-# 3  29         30
-# 4  30.0       41
-# 5  30       6261
-# 6  31        749
-# 7  55         36
-# 8  60        131
-# 9  61         32
-    # Various time intervals, hard to say why without comments column
-
-### How many observations per day?
-MWoolf_west$caldat <- as.Date(MWoolf_west$datetime)
-
-Mwwest2 <- MWoolf_west %>% 
-  group_by(caldat) %>% 
-  summarise(nObs = n())
-   # Before 2019-05-30 one image per hour; after 2
-Mwwest2
-Mwwest2[Mwwest2$nObs > 25, ]
-  # First date with >25 is 5/31
-
-MWoolf_east$caldat <- as.Date(MWoolf_east$datetime)
-
-Mweast2 <- MWoolf_east %>% 
-  group_by(caldat) %>% 
-  summarise(nObs = n())
-
-Mweast2
-Mweast2[Mweast2$nObs > 25, ]
-  # First date with >25 is 6/14
-
-Perez$caldat <- as.Date(Perez$datetime)
-
-Perez2 <- Perez %>% 
-  group_by(caldat) %>% 
-  summarise(nObs = n())
-
-Perez2
-
-UCKearney$caldat <- as.Date(UCKearney$datetime)
-
-UCKearney2 <- UCKearney %>% 
-  group_by(caldat) %>% 
-  summarise(nObs = n())
-
-UCKearney2
-
-usda$caldat <- as.Date(usda$datetime)
-
-usda2 <- usda %>% 
-  group_by(caldat) %>% 
-  summarise(nObs = n())
-
-usda2
+### Doing a left_join merger on photos_30_min_yr19[,1:2] gives 2019 obs
+### with photos at 30 minute intervals
