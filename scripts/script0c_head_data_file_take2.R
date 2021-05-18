@@ -127,4 +127,14 @@ photos_30_min_yr19
 # 2 MWoolf_east 2019-06-16    47
 
 ### Doing a left_join merger on photos_30_min_yr19[,1:2] gives 2019 obs
-### with photos at 30 minute intervals
+### with photos at 30 minute intervals (as illustrated below)
+
+left_join(photos_30_min_yr19,allsites19)
+# Joining, by = c("site", "cal_date")
+# # A tibble: 30,584 x 8
+# # Groups:   site [5]
+# site        cal_date    nObs datetime            pest_nmbr pest_dif reviewed event
+# <chr>       <date>     <int> <dttm>                  <dbl>    <dbl> <chr>    <chr>
+# 1 MWoolf_east 2019-06-15    47 2019-06-15 00:28:00         0        0 Yes      NA   
+# 2 MWoolf_east 2019-06-15    47 2019-06-15 00:58:00         0        0 Yes      NA   
+# 3 MWoolf_east 2019-06-15    47 2019-06-15 01:28:00         0        0 Yes      NA   
