@@ -1,5 +1,5 @@
 #===========================================================================#
-# script0_head_data_files.R
+# script0c_head_data_file_take2.R
 #
 # Show that file structures are equivalent
 # 1. Load 2019 and 2020 data sets
@@ -12,7 +12,9 @@ library(tidyverse)
 #-- 1. Load 2019 and 2020 data sets ------------------------------------------
 
 allsites19 <- read_csv("./data/allsites_y19.csv")
+allsites19$cal_date <-as.Date(allsites19$datetime) 
 allsites19
+
 # A tibble: 38,202 x 6
 # datetime            pest_nmbr pest_dif reviewed event site     
 #   <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>    
@@ -20,6 +22,10 @@ allsites19
 # 2 2019-04-26 14:56:00         7        0 Yes      NA    UCKearney
 
 allsites20 <- read_csv("./data/allsites_y20.csv")
+allsites20$cal_date <-as.Date(allsites20$datetime) 
+allsites20
+
+
 allsites20
 # A tibble: 31,726 x 6
 #   datetime            pest_nmbr pest_dif reviewed event site      
@@ -47,6 +53,8 @@ alltemps20
 # 3 2020-04-22 04:00:00     49.7    48.9    50.4   94.2 MWT1 
 
 #-- 2. Observations, time period and time interval  ---------------------------
+
+### Get overall date range for both years
 
 ovrvw_events19 <- allsites19 %>%
   group_by(site) %>% 
@@ -78,7 +86,45 @@ ovrvw_events20
 # 4 mikewoolf4  8215 2020-03-06 2020-09-22
 # 5 mikewoolf5  3656 2020-07-07 2020-09-22
 
-### Get intervals
+### Determine photos per hour/photos per day/interval between photos
+
+photos_pr_day19 <- allsites19 %>%
+  group_by(site,cal_date) %>% 
+  summarise(nObs = sum(!is.na(pest_dif)))
+photos_pr_day19
+# A tibble: 852 x 3
+# Groups:   site [5]
+# site        cal_date    nObs
+#   <chr>       <date>     <int>
+# 1 MWoolf_east 2019-06-04     7
+# 2 MWoolf_east 2019-06-05    23
+
+hist(photos_pr_day19$nObs)
+  # Shows that 24 and 48 are strongly modal
+
+
+x <- photos_pr_day19
+#x <- photos_pr_day19[photos_pr_day19$nObs > 25, ] #778 obs
+#unique(x$nObs)
+## [1] 41 47 48 45 46 43 49 44 34 42 38 50 33 39 36 37 30 35 29 40 32 27 28 31 51 26
+
+x %>% 
+  group_by(nObs) %>% 
+  summarise(events = n()) %>% 
+  filter(events > 20)
+# A tibble: 6 x 2
+# nObs events
+#   <int>  <int>
+# 1    24     34
+# 2    44     21
+# 3    46     30
+# 4    47    134
+# 5    48    414
+# 6    49     90
+     
+    # To examine timing, select days with 47-49 camera events
+
+
 #intervals_events19 <- 
 x <- allsites19 # Pass allsites19 to temp object x
 head(x)
