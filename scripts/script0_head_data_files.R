@@ -9,17 +9,22 @@
 
 library(tidyverse)
 
-#-- 1. Load 2019 and 2020 data sets ------------------------------------------
+##### LOAD SEASON-LONG DATA SETS ############################################
 
-allsites19 <- read_csv("./data/allsites_y19.csv")
+# Load season-long count data sets for five traps in 2019 and 2020
+
+allsites19 <- readr::read_csv("./data/allsites_y19.csv")
+allsites20 <- readr::read_csv("./data/allsites_y20.csv")
+
+# Show size and top lines of the count data tibbles
+
 allsites19
 # A tibble: 38,202 x 6
-# datetime            pest_nmbr pest_dif reviewed event site     
+#   datetime            pest_nmbr pest_dif reviewed event site     
 #   <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>    
 # 1 2019-04-26 13:56:00         7        7 Yes      NA    UCKearney
 # 2 2019-04-26 14:56:00         7        0 Yes      NA    UCKearney
 
-allsites20 <- read_csv("./data/allsites_y20.csv")
 allsites20
 # A tibble: 31,726 x 6
 #   datetime            pest_nmbr pest_dif reviewed event site      
@@ -27,8 +32,13 @@ allsites20
 # 1 2020-04-22 03:18:00         5        4 Yes      NA    mikewoolf1
 # 2 2020-04-22 05:02:00         7        2 Yes      NA    mikewoolf1
 
+# Load temperature data for each trap in 2019 and 2020
 
 alltemps19 <- read_csv("./data/trapview_temps_degf_y19.csv")
+alltemps20 <- read_csv("./data/trapview_temps_degf_y20.csv")
+
+# Show size and top lines of the temperature data tibbles
+
 alltemps19
 # A tibble: 18,969 x 6
 #   site      Date_time           degf_avg degf_lo degf_hi rh_avg
@@ -37,7 +47,6 @@ alltemps19
 # 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
 # 3 UCKearney 2019-05-16 19:00:00     55.0    53.8    56.8   90.4
 
-alltemps20 <- read_csv("./data/trapview_temps_degf_y20.csv")
 alltemps20
 # A tibble: 17,580 x 6
 #   Date_time           degf_avg degf_lo degf_hi rh_avg site 
@@ -46,7 +55,10 @@ alltemps20
 # 2 2020-04-22 03:00:00     49.5    48.9    49.8   93.8 MWT1 
 # 3 2020-04-22 04:00:00     49.7    48.9    50.4   94.2 MWT1 
 
-#-- 2. Observations, time period and time interval  ---------------------------
+
+##### FURTHER CHARACTERIZE SEASON-LONG DATA SETS ############################
+
+# Determine date range and number of observations for each of the 2019 traps
 
 ovrvw_events19 <- allsites19 %>%
   group_by(site) %>% 
@@ -63,6 +75,9 @@ ovrvw_events19
 # 4 UCKearney    8244 2019-04-26 2019-11-04
 # 5 usda         9056 2019-04-24 2019-10-31
 
+
+# Determine date range and number of observations for each of the 2020 traps
+
 ovrvw_events20 <- allsites20 %>% 
   group_by(site) %>% 
   summarise(nObs = sum(!is.na(pest_dif)),
@@ -78,71 +93,73 @@ ovrvw_events20
 # 4 mikewoolf4  8215 2020-03-06 2020-09-22
 # 5 mikewoolf5  3656 2020-07-07 2020-09-22
 
-### Get intervals
-#intervals_events19 <- 
-x <- allsites19 # Pass allsites19 to temp object x
-head(x)
-# A tibble: 6 x 6
-# datetime            pest_nmbr pest_dif reviewed event site     
-# <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>    
-# 1 2019-04-26 13:56:00         7        7 Yes      NA    UCKearney
-# 2 2019-04-26 14:56:00         7        0 Yes      NA    UCKearney
-# 3 2019-04-26 15:57:00         7        0 Yes      NA    UCKearney
-# 4 2019-04-26 16:56:00         7        0 Yes      NA    UCKearney
-# 5 2019-04-26 17:57:00         7        0 Yes      NA    UCKearney
-# 6 2019-04-26 18:57:00         7        0 Yes      NA    UCKearney
+# Determine interval between events in the count data. Note that sometimes the
+# traps captured photos every 30 minutes and sometimes (early season) it was
+# every 60 minutes. Start with 2019 data set
 
-unique(x$event) 
+# Examine the "event" variable. Is it mostly NA? How important is it?
+
+length(allsites19$event[!is.na(allsites19$event)])
+
+# 147 of ~38,000 obs have a value other than NA 
+
+unique(allsites19$event) 
 # [1] NA                       "Sticky roll tweak"      "Replace of sticky roll"
 
-x <- x[ ,-5] # drop event which is 95% NA and not essential
-x <- x[complete.cases(x), ] # retains 95% of obs
-x$site <- factor(x$site, levels = unique(x$site))
-   # Looks like x has to be a factor for this to work
-y <- split(x, f = x$site)
-y[[1]][1:6,] 
-y[[2]][1:6,] 
-y[[3]][1:6,] 
-y[[4]][1:6,] 
-y[[5]][1:6,] 
-   # split made this into a list containting 5 data frames. Notation above
-   # is a klunky way of heading each
+# drop event which is 95% NA and not essential. Use Base R to drop, then select
+# only complete records
 
-### Subset back out entire data sets
-UCKearney  <- y[[1]] 
-MWoolf_east  <- y[[2]] 
-MWoolf_west  <- y[[3]] 
-Perez  <- y[[4]] 
-usda <- y[[5]]
+allsites19 <- allsites19[ ,-5] 
+allsites19 <- allsites19[complete.cases(allsites19), ] 
 
-### Pull all times out of y[[1]] (UCKearney) and place in a vector to examine
-### getting time differences
-dtimes1 <- y[[1]][,1]  # 8244 values
-dtimes1 <- dtimes1[!is.na(dtimes1)] 
-length(dtimes1) # 8244, no loss
-z <- dtimes1[1:10] # first 10 values
+# retains 95% of obs. Now making site into a factor to use it with the split function
+# Looks like x has to be a factor for this to work
 
-### diff functions
-### https://www.talkstats.com/threads/differences-between-elements-of-a-vector.13341/
-### https://stackoverflow.com/questions/30510044/how-to-make-time-difference-in-same-units-when-subtracting-posixct
+allsites19$site <- factor(allsites19$site, levels = unique(allsites19$site))
 
-a <- seq(1,10) # diff() with an integer variable
-diff(a)
-# [1] 1 1 1 1 1 1 1 1 1
+allsites19_L <- split(allsites19, f = allsites19$site)
+allsites19_L[[1]][1:6,] 
+allsites19_L[[2]][1:6,] 
+allsites19_L[[3]][1:6,] 
+allsites19_L[[4]][1:6,] 
+allsites19_L[[5]][1:6,] 
 
-diff(z) # diff function with times from y$UCKearney
-# Time differences in mins
-# [1] 60 61 59 61 60 61 60 60 60
+# split made this into a list containing 5 data frames. Notation above
+# is a klunky way of heading each. Subset back out entire data sets
 
-### Use diff with the entire string and units()<- to control unit
+UCKearney  <- allsites19_L[[1]] 
+MWoolf_east  <- allsites19_L[[2]] 
+MWoolf_west  <- allsites19_L[[3]] 
+Perez  <- allsites19_L[[4]] 
+usda <- allsites19_L[[5]]
+
+# Pull all times out of UCKearney and place in a vector to examine getting time 
+# differences. First verify length and show the first 10 values of this vector.
+# Note that times are Pacific Daylight, but R pressumes universal time (UTC)
+
+dtimes1 <- UCKearney$datetime  # 8244 values
+length(dtimes1[!is.na(dtimes1)]) 
+dtimes1[1:10]
+# [1] "2019-04-26 13:56:00 UTC" "2019-04-26 14:56:00 UTC" "2019-04-26 15:57:00 UTC" "2019-04-26 16:56:00 UTC"
+# [5] "2019-04-26 17:57:00 UTC" "2019-04-26 18:57:00 UTC" "2019-04-26 19:58:00 UTC" "2019-04-26 20:58:00 UTC"
+# [9] "2019-04-26 21:58:00 UTC" "2019-04-26 22:58:00 UTC"
+
+# Get the interval between the times in "dtimes1, using diff() along with units()<- to control unit
+
 b <- diff(dtimes1)
-str(b)
 units(b) <- "mins"
-length(b) #8243 obs, 1 less than dtimes
+length(b) 
+
+# 8243 obs, 1 less than dtimes. Show first 10 values
+
+b[1:10]
+# Time differences in mins
+# [1] 60 61 59 61 60 61 60 60 60 60
+
+# Show unique values
+
 unique(b)
 
-difs1 <- as.integer(diff(y$UCKearney[,1])) # y$UCKearney is 8254 rows
-unique(difs1)
 
 ### Try using diff within the dataframe
 MWoolf_west$dif_time[2:nrow(MWoolf_west)] <- diff(MWoolf_west$datetime)
