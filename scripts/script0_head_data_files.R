@@ -127,10 +127,10 @@ allsites19_L[[5]][1:6,]
 # split made this into a list containing 5 data frames. Notation above
 # is a klunky way of heading each. Subset back out entire data sets
 
-UCKearney  <- allsites19_L[[1]] 
-MWoolf_east  <- allsites19_L[[2]] 
-MWoolf_west  <- allsites19_L[[3]] 
-Perez  <- allsites19_L[[4]] 
+UCKearney  <- allsites19_L[[1]]
+MWoolf_east  <- allsites19_L[[2]]
+MWoolf_west  <- allsites19_L[[3]]
+Perez  <- allsites19_L[[4]]
 usda <- allsites19_L[[5]]
 
 # Pull all times out of UCKearney and place in a vector to examine getting time 
@@ -144,7 +144,8 @@ dtimes1[1:10]
 # [5] "2019-04-26 17:57:00 UTC" "2019-04-26 18:57:00 UTC" "2019-04-26 19:58:00 UTC" "2019-04-26 20:58:00 UTC"
 # [9] "2019-04-26 21:58:00 UTC" "2019-04-26 22:58:00 UTC"
 
-# Get the interval between the times in "dtimes1, using diff() along with units()<- to control unit
+# One approach it to get the interval between the times in "dtimes1".
+# Use diff() with units()<- to control unit
 
 b <- diff(dtimes1)
 units(b) <- "mins"
@@ -185,7 +186,8 @@ MWoolf_west %>%
 # 9  61         32
     # Various time intervals, hard to say why without comments column
 
-### How many observations per day?
+### How many observations per day? This is simpler and cruder approach
+
 MWoolf_west$caldat <- as.Date(MWoolf_west$datetime)
 
 Mwwest2 <- MWoolf_west %>% 
@@ -195,6 +197,7 @@ Mwwest2 <- MWoolf_west %>%
 Mwwest2
 Mwwest2[Mwwest2$nObs > 25, ]
   # First date with >25 is 5/31
+
 
 MWoolf_east$caldat <- as.Date(MWoolf_east$datetime)
 
@@ -213,6 +216,8 @@ Perez2 <- Perez %>%
   summarise(nObs = n())
 
 Perez2
+Perez2[Perez2$nObs > 25, ]
+  # First date with >25 is 6/04. More consistent after 6/14
 
 UCKearney$caldat <- as.Date(UCKearney$datetime)
 
@@ -221,6 +226,8 @@ UCKearney2 <- UCKearney %>%
   summarise(nObs = n())
 
 UCKearney2
+UCKearney2[UCKearney2$nObs > 25, ]
+   # Consistently ~48/day from 5/31 on
 
 usda$caldat <- as.Date(usda$datetime)
 
@@ -229,3 +236,5 @@ usda2 <- usda %>%
   summarise(nObs = n())
 
 usda2
+usda2[usda2$nObs > 25, ]
+   # Consistently ~48/day from 4/27 on
