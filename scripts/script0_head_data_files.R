@@ -186,7 +186,9 @@ MWoolf_west %>%
 # 9  61         32
     # Various time intervals, hard to say why without comments column
 
-### How many observations per day? This is simpler and cruder approach
+## How many observations per day? This is simpler and cruder approach
+
+### Starting with 2019 data
 
 MWoolf_west$caldat <- as.Date(MWoolf_west$datetime)
 
@@ -238,3 +240,27 @@ usda2 <- usda %>%
 usda2
 usda2[usda2$nObs > 25, ]
    # Consistently ~48/day from 4/27 on
+
+### Continuing with 2020 dat
+
+allsites20 <- allsites20[ ,-5] 
+allsites20 <- allsites20[complete.cases(allsites20), ]
+allsites20
+
+# Create temporary data frame containing readings per day
+
+x <- allsites20 %>% 
+  mutate(caldate = as.Date(datetime)) %>% # group into days
+  group_by(site, caldate) %>% 
+  summarise(nObs = n())
+
+# Plot readings per day by site
+
+ggplot(x, aes(x = caldate, y = nObs)) +
+  geom_line() + 
+  facet_grid(site ~ .)
+
+# When needed filter x for 
+
+
+
