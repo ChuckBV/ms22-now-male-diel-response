@@ -75,6 +75,9 @@ ovrvw_events19
 # 4 UCKearney    8244 2019-04-26 2019-11-04
 # 5 usda         9056 2019-04-24 2019-10-31
 
+write.csv(ovrvw_events19,
+          "./results/ovrvw_events19.csv",
+          row.names = FALSE)
 
 # Determine date range and number of observations for each of the 2020 traps
 
@@ -110,21 +113,35 @@ allsites19 <- allsites19[ ,-5]
 allsites19 <- allsites19[complete.cases(allsites19), ] 
 allsites19
 
-# retains 95% of obs. Now making site into a factor to use it with the split function
-# Looks like x has to be a factor for this to work
+# Create a date variable (as opposed to datetime) to group obs by days
 
 x19 <- allsites19 %>% 
   mutate(caldate = as.Date(datetime)) %>% # group into days
   group_by(site, caldate) %>% 
   summarise(nObs = n())
+x19
+# A tibble: 852 x 3
+# Groups:   site [5]
+# site        caldate     nObs
+#   <chr>       <date>     <int>
+# 1 MWoolf_east 2019-06-04     7
+# 2 MWoolf_east 2019-06-05    23
+# 3 MWoolf_east 2019-06-06    24
 
 # Plot readings per day by site
 
-ggplot(x19, aes(x = caldate, y = nObs)) +
+p1 <- ggplot(x19, aes(x = caldate, y = nObs)) +
   geom_line() + 
   facet_grid(site ~ .)
 
-# When needed filter x for nObs > 42
+p1
+
+ggsave(filename = "trapview_events_pr_hr_2019.jpg", 
+       plot = p1, 
+       device = "jpg", 
+       path = "./results", 
+       dpi = 300, width = 5.83, height = 5.83, units = "in")
+
 
 ### Continuing with 2020 data
 
@@ -141,9 +158,18 @@ x20 <- allsites20 %>%
 
 # Plot readings per day by site
 
-ggplot(x20, aes(x = caldate, y = nObs)) +
+p2 <- ggplot(x20, aes(x = caldate, y = nObs)) +
   geom_line() + 
   facet_grid(site ~ .)
+
+p2
+
+ggsave(filename = " expt3_boxplots.jpg", 
+       plot = p2, 
+       device = "jpg", 
+       path = "./results", 
+       dpi = 300, width = 5.83, height = 5.83, units = "in")
+
 
 # When needed filter x for nObs > 42
 
