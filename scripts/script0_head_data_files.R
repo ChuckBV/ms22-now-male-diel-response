@@ -164,14 +164,56 @@ p2 <- ggplot(x20, aes(x = caldate, y = nObs)) +
 
 p2
 
-ggsave(filename = " expt3_boxplots.jpg", 
+ggsave(filename = "trapview_events_pr_hr_2019.jpg", 
        plot = p2, 
        device = "jpg", 
        path = "./results", 
        dpi = 300, width = 5.83, height = 5.83, units = "in")
 
 
-# When needed filter x for nObs > 42
+## Filter for nObs > 42 for when needed
 
+# First 2019
 
+x19  # review
+# # A tibble: 852 x 3
+# # Groups:   site [5]
+# site        caldate     nObs
+#   <chr>       <date>     <int>
+# 1 MWoolf_east 2019-06-04     7
+# 2 MWoolf_east 2019-06-05    23
+# 3 MWoolf_east 2019-06-06    24
+
+thirty_min_ints19 <- x19 %>%   # filter 
+  filter(nObs > 42)
+write.csv(thirty_min_ints19,   # save
+          "./results/thirty_min_ints19.csv",
+          row.names = FALSE)
+
+# Test for days with gaps after intervals set to 30 minutes
+# Mike Woolf East had many such days in Aug and Sep 2019, need to determine
+# what happened.
+
+x <- x19  %>% 
+  filter(nObs <= 42 & caldate >= as.Date("2019-06-15"))
+ 
+# Repeat for 2020
+
+x20  # review
+# A tibble: 729 x 3
+# Groups:   site [5]
+# site       caldate     nObs
+#   <chr>      <date>     <int>
+# 1 mikewoolf1 2020-04-22    27
+# 2 mikewoolf1 2020-04-23    38
+# 3 mikewoolf1 2020-04-24    32
+
+thirty_min_ints20 <- x20 %>%   # filter 
+  filter(nObs > 42)
+write.csv(thirty_min_ints20,   # save
+          "./results/thirty_min_ints20.csv",
+          row.names = FALSE)
+
+# Test for days with gaps after intervals set to 30 minutes
+# Examine nObs vs days more closely.
 
