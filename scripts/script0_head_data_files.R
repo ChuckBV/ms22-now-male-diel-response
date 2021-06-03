@@ -36,8 +36,8 @@ allsites20
 
 # Load temperature data for each trap in 2019 and 2020
 
-alltemps19 <- read_csv("./trapview_temps_degf_y19.csv")
-alltemps20 <- read_csv("./trapview_temps_degf_y20.csv")
+alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
+alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
 
 # Show size and top lines of the temperature data tibbles
 
@@ -62,62 +62,15 @@ alltemps20
 
 # Determine date range and number of observations for each of the 2019 traps
 
-ovrvw_events19 <- allsites19 %>%
-  group_by(site) %>% 
-  summarise(nObs = sum(!is.na(pest_dif)),
-            min_date = as.Date(min(datetime)),
-            max_date = as.Date(max(datetime)))
-ovrvw_events19
-# A tibble: 5 x 4
-#   site         nObs min_date   max_date  
-#   <chr>       <int> <date>     <date>    
-# 1 MWoolf_east  6274 2019-06-04 2019-10-31
-# 2 MWoolf_west  7525 2019-05-22 2019-10-31
-# 3 Perez        7099 2019-06-03 2019-11-04
-# 4 UCKearney    8244 2019-04-26 2019-11-04
-# 5 usda         9056 2019-04-24 2019-10-31
-
-write.csv(ovrvw_events19,
-          "./results/ovrvw_events19.csv",
-          row.names = FALSE)
-
-# Determine date range and number of observations for each of the 2020 traps
-
-ovrvw_events20 <- allsites20 %>% 
-  group_by(site) %>% 
-  summarise(nObs = sum(!is.na(pest_dif)),
-            min_date = as.Date(min(datetime)),
-            max_date = as.Date(max(datetime)))
-ovrvw_events20
-# A tibble: 5 x 4
-# site        nObs min_date   max_date  
-#   <chr>      <int> <date>     <date>    
-# 1 mikewoolf1  5337 2020-04-22 2020-09-22
-# 2 mikewoolf2  7736 2020-03-12 2020-09-22
-# 3 mikewoolf3  6782 2020-04-21 2020-09-22
-# 4 mikewoolf4  8215 2020-03-06 2020-09-22
-# 5 mikewoolf5  3656 2020-07-07 2020-09-22
-
-# Determine interval between events in the count data. Note that sometimes the
-# traps captured photos every 30 minutes and sometimes (early season) it was
-# every 60 minutes. Start with 2019 data set
-
-# Examine the "event" variable. Is it mostly NA? How important is it?
-
-length(allsites19$event[!is.na(allsites19$event)])
-
-# 147 of ~38,000 obs have a value other than NA 
-
-unique(allsites19$event) 
-# [1] NA                       "Sticky roll tweak"      "Replace of sticky roll"
-
-allsites19 <- allsites19[ ,-5] 
+allsites19 <- allsites19[ ,-5] # mostly NA, not very informative
 allsites19 <- allsites19[complete.cases(allsites19), ] 
 allsites19
 
-# Create a date variable (as opposed to datetime) to group obs by days
+## Determine and visually display events per
 
 x19 <- allsites19 %>% 
+  select(-5) %>% 
+  filter(complete.cases(.)) %>% 
   mutate(caldate = as.Date(datetime)) %>% # group into days
   group_by(site, caldate) %>% 
   summarise(nObs = n())
@@ -144,19 +97,30 @@ ggsave(filename = "trapview_events_pr_hr_2019.jpg",
        path = "./results", 
        dpi = 300, width = 5.83, height = 5.83, units = "in")
 
+y19 <- alltemps19 %>% 
+  mutate(caldate = as.Date(Date_time)) %>% # group into days
+  group_by(site, caldate) %>% 
+  summarise(nObs = n())
+y19
+
+ggplot(y19, aes(x = caldate, y = nObs)) +
+  geom_line() + 
+  facet_grid(site ~ .)
 
 ### Continuing with 2020 data
 
-allsites20 <- allsites20[ ,-5] 
-allsites20 <- allsites20[complete.cases(allsites20), ]
-allsites20
+#x20 <- 
 
-# Create temporary data frame containing readings per day
-
-x20 <- allsites20 %>% 
+allsites20 %>% 
+  select(-5) %>% 
+  filter(complete.cases(.)) %>% 
   mutate(caldate = as.Date(datetime)) %>% # group into days
   group_by(site, caldate) %>% 
-  summarise(nObs = n())
+  summarise(nObs = n()) %>% 
+  ggplot(., aes(x = caldate, y = nObs)) +
+    geom_line() + 
+    facet_grid(site ~ .)
+
 
 # Plot readings per day by site
 
