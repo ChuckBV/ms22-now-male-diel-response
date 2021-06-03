@@ -36,13 +36,8 @@ allsites20
 
 # Load temperature data for each trap in 2019 and 2020
 
-<<<<<<< HEAD
 alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
 alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
-=======
-alltemps19 <- read_csv("./trapview_temps_degf_y19.csv")
-alltemps20 <- read_csv("./trapview_temps_degf_y20.csv")
->>>>>>> f946b22999152ebb05c6cd3e7d74f3b557a9f2e5
 
 # Show size and top lines of the temperature data tibbles
 
