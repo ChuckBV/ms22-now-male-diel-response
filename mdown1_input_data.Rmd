@@ -1,0 +1,66 @@
+---
+title: "Hengst Chapter 2: A) input data"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, warning = FALSE, message = FALSE)
+```
+
+## 2019 Photo and and temperature data files 
+
+The data file documenting photograph results for 2019 is called "allsites19", and the file containing temperature data is called "alltemps19". In 2019 the five camera traps were in different orchards. These units were generally in service and providing data from mid-June (earlier in some cases) until late October. Photos per day were more limited for the Mike Woolf East trap for periods in September and October.
+
+```{r}
+library(tidyverse)
+allsites19 <- readr::read_csv("./allsites_y19.csv")
+
+allsites19 %>% 
+  select(-5) %>% 
+  filter(complete.cases(.)) %>% 
+  mutate(caldate = as.Date(datetime)) %>% # group into days
+  group_by(site, caldate) %>% 
+  summarise(nObs = n()) %>% 
+  ggplot(., aes(x = caldate, y = nObs)) +
+    geom_line() + 
+    facet_grid(site ~ .)
+```
+
+There should be 48 observations, one every 30 minutes.
+
+```{r}
+alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
+ggplot(alltemps19, aes(x = Date_time, y = degf_avg)) +
+  geom_line() +
+  facet_grid(site ~ .)
+```
+
+The 2019 temperature data indicate consistent data from around June to late October, with fewer or no breaks. The range in which the onset of mating activity is affected by temperature was previously identified as to 52 to 66 degrees Fahrenheit.
+
+## 2020 Photo and and temperature data files 
+
+```{r}
+allsites20 <- readr::read_csv("./allsites_y20.csv")
+
+allsites20 %>% 
+  select(-5) %>% 
+  filter(complete.cases(.)) %>% 
+  mutate(caldate = as.Date(datetime)) %>% # group into days
+  group_by(site, caldate) %>% 
+  summarise(nObs = n()) %>% 
+  ggplot(., aes(x = caldate, y = nObs)) +
+    geom_line() + 
+    facet_grid(site ~ .)
+```
+
+In 2020 the camera traps were placed some distance apart in the same orchard. The photolog data set indicates more breaks in the 2020 data compared to 2019.
+
+```{r}
+alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
+ggplot(alltemps20, aes(x = Date_time, y = degf_avg)) +
+  geom_line() +
+  facet_grid(site ~ .)
+```
+
+The straight portions of the line are breaks in the temperature data. This figure supports the conclusion from the previous photolog data set that the data in 2020 contains more breaks.
+
