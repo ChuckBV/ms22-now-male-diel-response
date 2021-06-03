@@ -13,8 +13,8 @@ library(tidyverse)
 
 # Load season-long count data sets for five traps in 2019 and 2020
 
-allsites19 <- readr::read_csv("./data/allsites_y19.csv")
-allsites20 <- readr::read_csv("./data/allsites_y20.csv")
+allsites19 <- readr::read_csv("./allsites_y19.csv")
+allsites20 <- readr::read_csv("./allsites_y20.csv")
 
 # Show size and top lines of the count data tibbles
 
@@ -34,8 +34,8 @@ allsites20
 
 # Load temperature data for each trap in 2019 and 2020
 
-alltemps19 <- read_csv("./data/trapview_temps_degf_y19.csv")
-alltemps20 <- read_csv("./data/trapview_temps_degf_y20.csv")
+alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
+alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
 
 # Show size and top lines of the temperature data tibbles
 
