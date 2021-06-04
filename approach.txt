@@ -1,0 +1,18 @@
+# Analysis markdown files
+
+## A. Overview, coverage of photo and temperature data
+
+Broad coverage (in terms of days) in 2019, more gaps in 2020
+
+## B. Variation in temperature data
+ 1. Variation between traps
+ 2. When is it in the range of 52 to 66F?
+ 3. Variation in diurnal patterns? (How much does it cool, how quickly?)
+
+## C. Closer examination of photo data
+ 1. Pool capture and compare site by week
+ 2. Shift start of day back 6 hours (to 6PM)
+ 3. How variable is trap capture night to night?
+ 4. Are patterns different between nights with few captures vs. many?
+ 
+## D. Compare time and temperature data
