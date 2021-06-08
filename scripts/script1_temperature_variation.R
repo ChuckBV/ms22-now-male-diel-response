@@ -13,16 +13,9 @@ alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
 
 ggplot(alltemps19, aes(x = Date_time, y = degf_avg)) +
   geom_line() +
-  facet_grid(site ~ .) 
+  facet_grid(site ~ .)
 
-  # May is in 2 of the 6 data sets, nothing earlier
-
-  + coord_cartesian(ylim = c(52, 66))
-
-
-ggplot(alltemps19, aes(x = Date_time, y = degf_avg)) +
-  geom_line() +
-  facet_grid(site ~ .) 
+# May is in 2 of the 6 data sets, nothing earlier
 
 # May is in 2 of the 6 data sets, nothing earlier
 
@@ -36,15 +29,11 @@ alltemps19
 # 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
 # 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
 
-alltemps19 %>% 
+alltemps192 %>% # 18969 to 798
   mutate(mnth = month(Date_time, label = TRUE, abbr = TRUE),
          day_of_mnth = mday(Date_time)) %>% 
   group_by(site, mnth, day_of_mnth) %>% 
-  summarise(mintemp = min(degf_lo)) %>% 
-  ggplot(., aes(x = day_of_mnth, y = mintemp, color = site)) +
-    geom_line() +
-    facet_grid(mnth ~ .) + #, scales = "free_y")
-    ylim(52,66)
+  summarise(degf_lo = min(degf_lo))
 
 # Nightly low was in this range in almost all months (lower in October?)
 # Need to look at diurnal variation, but these data suggest no great differences
