@@ -2,7 +2,7 @@
 # script1_temperature_variation.R
 # 
 # Examine variation in nightly temperatures, and determine the number of
-# observations in a range relevant to shiftying mating activity earler
+# observations in a range relevant to shifting mating activity earler
 #
 #===========================================================================#
 
