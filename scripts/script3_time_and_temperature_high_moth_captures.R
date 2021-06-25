@@ -1,7 +1,7 @@
 #===========================================================================#
 # script3_time_and_temperature_high_moth_captures.R
 # 
-# Examine temperatures and times of capture fore sites and nighs with high
+# Examine temperatures and times of capture fore sites and nights with high
 # moth capture
 #
 #===========================================================================#
@@ -12,6 +12,7 @@ library(lubridate)
 # Load previous "gt20" files into memory
 gt20_y19 <- read_csv("./data/nights_w_counts_gt20_y19.csv")
 gt20_y20 <- read_csv("./data/nights_w_counts_gt20_y20.csv")
+  # Created in script 2
 
 head(gt20_y19)
 head(gt20_y20)
@@ -53,19 +54,36 @@ temps19 <- left_join(gt20_y19,alltemps19)
 counts20 <- left_join(gt20_y20,allsites20)
   # by = c("site","Julian"), reduces from 31723 to 407 obs
 temps20 <- left_join(gt20_y20,alltemps20)
-# by = c("site","Julian"), reduces from 1750 to 218 obs
+  # by = c("site","Julian"), reduces from 1750 to 218 obs
 
-# Determine how to compbine data sets in tidy format for ggplot
-head(counts19,2)
+# Determine how to combine data sets in tidy format for ggplot
+head(counts19,2) # 1534 obs
 # A tibble: 2 x 10
 #   site         Year Julian  nObs NowPrDay datetime            pest_nmbr pest_dif reviewed event
 #   <chr>       <dbl>  <dbl> <dbl>    <dbl> <dttm>                  <dbl>    <dbl> <chr>    <chr>
 # 1 MWoolf_east  2019    187    48       28 2019-07-06 00:28:00        20        0 Yes      NA   
 # 2 MWoolf_east  2019    187    48       28 2019-07-06 00:58:00        20        0 Yes      NA   
 
-head(temps19,2)
+head(temps19,2) #407 obs
 # A tibble: 2 x 10
 #   site         Year Julian  nObs NowPrDay datetime            degf_avg degf_lo degf_hi rh_avg
 #   <chr>       <dbl>  <dbl> <dbl>    <dbl> <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
 # 1 MWoolf_east  2019    187    48       28 2019-07-06 00:00:00     70.6    68.9    72.3   53.4
 # 2 MWoolf_east  2019    187    48       28 2019-07-06 01:00:00     70.1    68.7    71.4   51.9
+
+# Graph counts by time in counts19
+# ggplot(counts19, aes(x = ))
+   # hour() function with sample data
+x <- head(counts19,20)
+x$datetime
+x$hr_prt <- lubridate::hour(x$datetime)
+x$hr_prt
+#  [1]  0  0  1  1  2  2  3  3  4  4  5  5  6  7  7  8  8  9  9 10
+    # Give integer, we wanted decimal. For now go to minutes
+x$hr_prt <- NULL # drop this
+
+x$min_prt <- lubridate::minute(x$datetime)
+x$min_prt
+  # gives a part, we want interval
+
+x$in_hours <- interval(x$datetime, "hours")
