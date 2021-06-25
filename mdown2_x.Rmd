@@ -9,11 +9,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 2019 and 2020 temperature ranges
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Show code and file header information for 2019. Provide an equivalent and more succinct report for 2020. First loading the data.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r, echo= FALSE}
+```{r, warning=FALSE}
 library(magrittr)
 alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
 alltemps19
@@ -21,8 +19,10 @@ alltemps19
 
 ### 2019 <61F: Percent nights by month
 
-``` {r}
-alltemps19 %>% # 18969 to 798
+Table of the proportion of nights per month in which the temperature fell into the upper end of the range identified by Landolt and Curtis as influencing mating.
+
+``` {r, warning=FALSE}
+alltemps19 %>%
   dplyr::mutate(mnth = lubridate::month(Date_time, label = TRUE, abbr = TRUE),
                 day_of_mnth = lubridate::mday(Date_time)) %>% 
   dplyr::group_by(site, mnth, day_of_mnth) %>% 
@@ -41,15 +41,40 @@ alltemps19 %>% # 18969 to 798
                      names_from = mnth, 
                      values_from = pct_lt66,
                      values_fill = 0) %>% 
+  dplyr::select(site,May,Jun,Jul,Aug,Sep,Oct,Nov)  %>%
   knitr::kable(., "latex")
 ```
 
-## Including Plots
+## 2020 <61F: Percent nights by month
 
-You can also embed plots, for example:
+Again load data and head() two lines. Note that all units are at the same "site" as defined for 2019, so site in 2020 distinguishes which row the trap was in.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, echo=FALSE, warning=FALSE}
+alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
+head(alltemps20,2)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+``` {r, warning=FALSE}
+alltemps20 %>%
+  dplyr::mutate(mnth = lubridate::month(Date_time, label = TRUE, abbr = TRUE),
+                day_of_mnth = lubridate::mday(Date_time)) %>% 
+  dplyr::group_by(site, mnth, day_of_mnth) %>% 
+  dplyr::summarise(degf_lo = min(degf_lo)) %>% 
+  dplyr::mutate(lt66 = ifelse(degf_lo < 66,1,0),
+                lt52 = ifelse(degf_lo <= 52,1,0)) %>% 
+  dplyr::filter(!is.na(degf_lo)) %>% 
+  dplyr::group_by(site,mnth) %>% 
+  dplyr::summarise(lt66 = sum(lt66),
+            lt52 = sum(lt52),
+            nObs = dplyr::n(),
+            pct_lt66 = 100*lt66/nObs,
+            pct_lt52 = 100*lt52/nObs) %>% 
+  dplyr::select(site,mnth,pct_lt52) %>% 
+  tidyr::pivot_wider(id_cols = site, 
+                     names_from = mnth, 
+                     values_from = pct_lt52,
+                     values_fill = 0) %>%
+  dplyr::select(site,Feb,Mar,May,Jun,Jul,Aug,Sep) %>% 
+  knitr::kable(., "latex")
+```
