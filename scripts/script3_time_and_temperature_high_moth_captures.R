@@ -8,10 +8,11 @@
 
 library(tidyverse)
 library(lubridate)
+library(timechange)
 
 # Load previous "gt20" files into memory
-gt20_y19 <- read_csv("./data/nights_w_counts_gt20_y19.csv")
-gt20_y20 <- read_csv("./data/nights_w_counts_gt20_y20.csv")
+gt20_y19 <- readr::read_csv("./data/nights_w_counts_gt20_y19.csv")
+gt20_y20 <- readr::read_csv("./data/nights_w_counts_gt20_y20.csv")
   # Created in script 2
 
 head(gt20_y19)
@@ -36,24 +37,24 @@ alltemps20$site[alltemps20$site == "MWT4"] <- "mikewoolf4"
 alltemps20$site[alltemps20$site == "MWT5"] <- "mikewoolf5"
 
 alltemps19 <- alltemps19 %>% 
-  rename(datetime = Date_time)
+  dplyr::rename(datetime = Date_time)
 alltemps20 <- alltemps20 %>% 
-  rename(datetime = Date_time)
+  dplyr::rename(datetime = Date_time)
 
 # Introduce Julian date into original files
-allsites19$Julian <- yday(allsites19$datetime)
-allsites20$Julian <- yday(allsites20$datetime)
-alltemps19$Julian <- yday(alltemps19$datetime)
-alltemps20$Julian <- yday(alltemps20$datetime)
+allsites19$Julian <- lubridate::yday(allsites19$datetime)
+allsites20$Julian <- lubridate::yday(allsites20$datetime)
+alltemps19$Julian <- lubridate::yday(alltemps19$datetime)
+alltemps20$Julian <- lubridate::yday(alltemps20$datetime)
 
 # Use the gt20 files to narrow records in allsites and alltemps
-counts19 <- left_join(gt20_y19,allsites19)
+counts19 <- dplyr::left_join(gt20_y19,allsites19)
   # by = c("site","Julian"), reduces from 38202 to 1534 obs
-temps19 <- left_join(gt20_y19,alltemps19)
+temps19 <- dplyr::left_join(gt20_y19,alltemps19)
   # by = c("site","Julian"), reduces from 18969 to 816 obs
-counts20 <- left_join(gt20_y20,allsites20)
+counts20 <- dplyr::left_join(gt20_y20,allsites20)
   # by = c("site","Julian"), reduces from 31723 to 407 obs
-temps20 <- left_join(gt20_y20,alltemps20)
+temps20 <- dplyr::left_join(gt20_y20,alltemps20)
   # by = c("site","Julian"), reduces from 1750 to 218 obs
 
 # Determine how to combine data sets in tidy format for ggplot
@@ -70,6 +71,14 @@ head(temps19,2) #407 obs
 #   <chr>       <dbl>  <dbl> <dbl>    <dbl> <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
 # 1 MWoolf_east  2019    187    48       28 2019-07-06 00:00:00     70.6    68.9    72.3   53.4
 # 2 MWoolf_east  2019    187    48       28 2019-07-06 01:00:00     70.1    68.7    71.4   51.9
+
+### Get time from midnight as a numeric variable
+x <- head(counts19,20)
+x$datetime # show the datetime vector
+
+
+
+### A previous rabbit hole
 
 # Graph counts by time in counts19
 # ggplot(counts19, aes(x = ))
