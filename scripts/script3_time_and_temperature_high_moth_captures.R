@@ -76,23 +76,100 @@ head(temps19,2) #407 obs
 x <- head(counts19,20)
 x$datetime # show the datetime vector
 
+### Store local time zone in memory for subsequent steps
+realtz  <- "America/Los_Angeles"
+faketz <- "Atlantic/Cape_Verde" # UCT -1
 
+### Get Date and Minutes from sunset
 
-### A previous rabbit hole
+# Set timezone as recorded (R defaults to UTC, but was PDT)
+counts19$datetime <- timechange::time_force_tz(counts19$datetime, tz = realtz)
+attr(counts19$datetime, "tzone")
+# [1] "America/Los_Angeles"
 
-# Graph counts by time in counts19
-# ggplot(counts19, aes(x = ))
-   # hour() function with sample data
-x <- head(counts19,20)
-x$datetime
-x$hr_prt <- lubridate::hour(x$datetime)
-x$hr_prt
-#  [1]  0  0  1  1  2  2  3  3  4  4  5  5  6  7  7  8  8  9  9 10
-    # Give integer, we wanted decimal. For now go to minutes
-x$hr_prt <- NULL # drop this
+# Get time at UTC -1 (So zero hour is 6PM)
+counts19$time_cverde <- timechange::time_at_tz(counts19$datetime, tz = faketz)
+attr(counts19$time_cverde, "tzone")
+# [1] "Atlantic/Cape_Verde" 
 
-x$min_prt <- lubridate::minute(x$datetime)
-x$min_prt
-  # gives a part, we want interval
+# Get time since zero hour
+counts19$mnight_cverde <- lubridate::make_datetime(year(counts19$time_cverde),
+                                                       month(counts19$time_cverde),
+                                                       day(counts19$time_cverde),
+                                                       0,0,0,faketz)
 
-x$in_hours <- interval(x$datetime, "hours")
+counts19$since_night <- difftime(counts19$time_cverde,counts19$mnight_cverde, units = "hours")
+# finds time since midnight
+counts19$since_night2 <- as.numeric(counts19$since_night)
+# makes the time unit numeric
+
+# Examine output data
+glimpse(counts19)
+select(counts19, c(site,Julian,pest_dif,datetime,time_cverde,since_night2))
+
+# graph data
+ggplot(counts19, aes(x = since_night2, y = pest_dif)) +
+  geom_point() +
+  facet_grid(site ~ .)
+ # MWoolf_west heaviest, sort out outlier MWoolf_east
+
+# Filter for apparent outliers
+counts19 %>% 
+  filter(site == "MWoolf_east" & pest_dif > 40)
+#   A tibble: 2 x 14
+#   site    Year Julian  nObs NowPrDay datetime            pest_nmbr pest_dif reviewed event time_cverde        
+#   <chr>  <dbl>  <dbl> <dbl>    <dbl> <dttm>                  <dbl>    <dbl> <chr>    <chr> <dttm>             
+# 1 MWool~  2019    226    42       55 2019-08-14 04:26:00        44       44 Yes      NA    2019-08-14 10:26:00
+# 2 MWool~  2019    230    48       94 2019-08-18 23:59:00        85       85 Yes      NA    2019-08-19 05:59:00
+
+suspect <- counts19 %>% 
+  filter(pest_dif > 0 & pest_dif == pest_nmbr)
+suspect
+  # plausible for <15, not for more
+suspect %>% 
+  group_by(site) %>% 
+  summarise(nObs = n())
+# A tibble: 4 x 2
+#   site         nObs
+#   <chr>       <int>
+# 1 MWoolf_east     9
+# 2 MWoolf_west    12
+# 3 Perez           4
+# 4 usda            1
+
+# Remove outliers and 0 counts
+counts19b <- counts19 %>% 
+  filter(!(pest_dif > 15 & pest_dif == pest_nmbr)) %>% 
+  filter(pest_dif > 0)
+
+glimpse(counts19b)
+
+# graph data
+ggplot(counts19b, aes(x = since_night2, y = pest_dif)) +
+  geom_point() +
+  facet_grid(site ~ .)
+  # Need to determine what is happening with daytime captures
+
+dayfliers <- counts19b %>% 
+  filter(since_night2 > 12 & pest_dif != pest_nmbr) %>% 
+  select(c(site,datetime,pest_dif,since_night2))
+dayfliers
+  # Daytime fliers were rare, generally occured in May or September,
+  # and occasionally in August
+
+duskfliers <- counts19b %>% 
+  filter(since_night2 < 6 & pest_dif != pest_nmbr) %>% 
+  select(c(site,datetime,pest_dif,since_night2))
+duskfliers
+  # In 2019, male capture before midnight was sufficiently rare that it
+  # could be ignored
+
+### Time of first flight for nights w over 20 NOW captured
+# counts19c <- counts19 %>% 
+#   filter(!(pest_dif > 15 & pest_dif == pest_nmbr)) %>% 
+#   filter(pest_dif > 0) %>% 
+#   group_by(Julian) %>% 
+
+# Need a categorical variable based on sincenight 2. >6 & <= 7, etc.
+# Could reduce categories to half hours if all nObs = 48
+  
