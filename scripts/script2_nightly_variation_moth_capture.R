@@ -2,7 +2,7 @@
 # script2_nightly_variation_moth_capture
 # 
 # Find sites and nights with over 20 captures per night (better estimate of
-# distribution of capture times)
+# distribution of capture times). 
 #
 #===========================================================================#
 

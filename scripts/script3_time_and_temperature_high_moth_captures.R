@@ -12,8 +12,19 @@ library(timechange)
 
 # Load previous "gt20" files into memory
 gt20_y19 <- readr::read_csv("./data/nights_w_counts_gt20_y19.csv")
+gt20_y19
+# A tibble: 34 x 5
+#   site         Year Julian  nObs NowPrDay
+#   <chr>       <dbl>  <dbl> <dbl>    <dbl>
+# 1 MWoolf_east  2019    187    48       28
+# 2 MWoolf_east  2019    189    48       39
+
 gt20_y20 <- readr::read_csv("./data/nights_w_counts_gt20_y20.csv")
   # Created in script 2
+
+### This file identifies instances of high capture by site and night
+### using year and julian day. In order to merge with and filter other files, 
+### it is necessary to have Julian day in the files to be merged
 
 head(gt20_y19)
 head(gt20_y20)
