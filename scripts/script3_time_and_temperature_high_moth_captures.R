@@ -172,4 +172,117 @@ duskfliers
 
 # Need a categorical variable based on sincenight 2. >6 & <= 7, etc.
 # Could reduce categories to half hours if all nObs = 48
-  
+
+
+
+
+
+
+
+# Attempt to duplicate with the 2020 data sets 
+
+# Determine how to combine data sets in tidy format for ggplot
+head(counts20,2) 
+# A tibble: 2 x 10
+#site   Year Julian  nObs NowPrDay datetime           
+#<chr> <dbl>  <dbl> <dbl>    <dbl> <dttm>             
+#1 mike…  2020    170    49       20 2020-06-18 00:27:00
+#2 mike…  2020    170    49       20 2020-06-18 00:57:00
+# … with 4 more variables: pest_nmbr <dbl>, pest_dif <dbl>,
+#   reviewed <chr>, event <chr>
+
+head(temps20,2) 
+# A tibble: 2 x 10
+#site   Year Julian  nObs NowPrDay datetime            degf_avg
+#<chr> <dbl>  <dbl> <dbl>    <dbl> <dttm>                 <dbl>
+#1 mike…  2020    170    49       20 2020-06-18 00:00:00     60.4
+#2 mike…  2020    170    49       20 2020-06-18 01:00:00     60.9
+# … with 3 more variables: degf_lo <dbl>, degf_hi <dbl>,
+#   rh_avg <dbl>
+
+### Get time from midnight as a numeric variable
+xa <- head(counts20,20)
+xa$datetime # show the datetime vector
+
+### Store local time zone in memory for subsequent steps
+realtz  <- "America/Los_Angeles"
+faketz <- "Atlantic/Cape_Verde" # UCT -1
+
+### Get Date and Minutes from sunset
+
+# Set timezone as recorded (R defaults to UTC, but was PDT)
+counts20$datetime <- timechange::time_force_tz(counts20$datetime, tz = realtz)
+attr(counts20$datetime, "tzone")
+# [1] "America/Los_Angeles"
+
+# Get time at UTC -1 (So zero hour is 6PM)
+counts20$time_cverde <- timechange::time_at_tz(counts20$datetime, tz = faketz)
+attr(counts20$time_cverde, "tzone")
+# [1] "Atlantic/Cape_Verde" 
+
+# Get time since zero hour
+counts20$mnight_cverde <- lubridate::make_datetime(year(counts20$time_cverde),
+                                                   month(counts20$time_cverde),
+                                                   day(counts20$time_cverde),
+                                                   0,0,0,faketz)
+
+counts20$since_night <- difftime(counts20$time_cverde,counts20$mnight_cverde, units = "hours")
+# finds time since midnight
+counts20$since_night2 <- as.numeric(counts20$since_night)
+# makes the time unit numeric
+
+# Examine output data
+glimpse(counts20)
+select(counts20, c(site,Julian,pest_dif,datetime,time_cverde,since_night2))
+
+# graph data
+ggplot(counts20, aes(x = since_night2, y = pest_dif)) +
+  geom_point() +
+  facet_grid(site ~ .)
+
+
+# Filter for apparent outliers
+counts20 %>% 
+  filter(site ==  pest_dif > 40)
+
+
+suspect <- counts20 %>% 
+  filter(pest_dif > 0 & pest_dif == pest_nmbr)
+suspect
+# plausible for <15, not for more
+suspect %>% 
+  group_by(site) %>% 
+  summarise(nObs = n())
+# A tibble: 4 x 2
+#site        nObs
+#<chr>      <int>
+#1 mikewoolf1     4
+#2 mikewoolf2     3
+#3 mikewoolf3     3
+#4 mikewoolf4     3
+
+# Remove outliers and 0 counts
+counts20b <- counts20 %>% 
+  filter(!(pest_dif > 15 & pest_dif == pest_nmbr)) %>% 
+  filter(pest_dif > 0)
+
+glimpse(counts20b)
+
+# graph data
+ggplot(counts20b, aes(x = since_night2, y = pest_dif)) +
+  geom_point() +
+  facet_grid(site ~ .)
+# Need to determine what is happening with daytime captures
+
+dayfliers2 <- counts20b %>% 
+  filter(since_night2 > 12 & pest_dif != pest_nmbr) %>% 
+  select(c(site,datetime,pest_dif,since_night2))
+dayfliers2
+# Daytime fliers were rare, generally occured in May or September,
+# and occasionally in August
+
+duskfliers2 <- counts19b %>% 
+  filter(since_night2 < 6 & pest_dif != pest_nmbr) %>% 
+  select(c(site,datetime,pest_dif,since_night2))
+duskfliers2
+
