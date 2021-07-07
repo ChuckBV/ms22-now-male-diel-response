@@ -9,7 +9,9 @@
 library(tidyverse)
 library(lubridate)
 
+#--------------------------------------------------------------------------
 # Examine data for which there is a large pest_diff with an equal pest_nmbr
+#-------------------------------------------------------------------------#
 
 # load count data into global memory
 allsites19 <- readr::read_csv("./allsites_y19.csv")
@@ -55,8 +57,26 @@ allsites
 # 3 2019-04-26 15:57:00         7        0 Yes      NA    UCKearney  2019    116
 
 # Examine how frequently we see pest_dif equal to pest_nmbr
-allsites %>% 
-  filter(pest_dif == pest_nmbr & pest_dif > 0) %>% 
+x <- allsites %>% 
+  filter(pest_nmbr > 0 & pest_dif == pest_nmbr & pest_nmbr == lag(pest_nmbr, n = 1)) %>% 
   # reduces to 339 of 69928 observations
-  group_by(Yr,Julian)
+  group_by(Yr,site,Julian) %>% 
+  summarise(nObs = n())
+# reduces from 69928 to 4 obs
+
+# Use resultant data set x to filer allsites
+x <- left_join(x,allsites)
+x # 145 obs
+
+### Only 4 nights were there were oddities like this. All <5, not likely to 
+### affect the data.
+
+#--------------------------------------------------------------------------
+# Examine when and where daytime fliers occur (defined and 6AM to 6PM)
+#-------------------------------------------------------------------------#
+
+
+#--------------------------------------------------------------------------
+# Determine when and where early night fliers occur (>6PM and <12AM)
+#-------------------------------------------------------------------------#
 
