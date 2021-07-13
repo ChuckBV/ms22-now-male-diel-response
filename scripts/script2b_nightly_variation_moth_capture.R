@@ -56,20 +56,74 @@ allsites
 # 2 2019-04-26 14:56:00         7        0 Yes      NA    UCKearney  2019    116
 # 3 2019-04-26 15:57:00         7        0 Yes      NA    UCKearney  2019    116
 
-# Examine how frequently we see pest_dif equal to pest_nmbr
-x <- allsites %>% 
-  filter(pest_nmbr > 0 & pest_dif == pest_nmbr & pest_nmbr == lag(pest_nmbr, n = 1)) %>% 
-  # reduces to 339 of 69928 observations
-  group_by(Yr,site,Julian) %>% 
-  summarise(nObs = n())
-# reduces from 69928 to 4 obs
+# In at least some cases, all moths accumulated on a sticky roll after a 
+# "tweak" are counted again. The pattern seems to be pest_nmbr = 0, pest_dif
+# = 0 in the tweak, with the tweak 1 sec after the previous reading. Need to
+# get previous and next records for tweaks. In principle this can be done 
+# by built-in indexing in R
 
-# Use resultant data set x to filer allsites
-x <- left_join(x,allsites)
-x # 145 obs
+tweaks <- which(allsites$event %in% "Sticky roll tweak")
+tweaks
+# [1]    88   475   837  1327  1329  2680  3595  3672  3817  4007  4290  4489  4806  5110  5485  5787  6296  6655  8393
+# [20]  9372  9655  9673  9907 10053 10799 11085 11097 11235 11272 11285 11309 11414 11533 11582 11715 11723 11987 12327
+# [39] 13308 14536 14584 14633 14659 14695 14902 15201 15610 16292 16567 16593 16596 16734 16834 16888 16981 17032 17261
+# [58] 17356 17533 17610 17755 17894 17993 18081 18093 18230 18325 18589 18750 18753 18759 19030 19055 19438 19575 19737
+# [77] 19774 19873 20046 20248 20353 20396 20612 20910 21281 21376 21702 21899 22203 22254 22279 22496 23206 23480 23490
+# [96] 23508 23511 23547 23748 24443 24849 25138 25234 25338 25454 25550 25667 25784 26325 26343 27509 28806 28814 29165
+# [115] 29384 29524 30165 30874 32448 32749 32752 32788 32888 32990 33413 33415 33687 33908 34046 34145 34383 34470 34581
+# [134] 34698 34794 34904 35207 35410 35581 35883 36195 36394 36755 38269 38297 38395 38434 38460 38513 38600 38668 38940
+# [153] 39031 39045 39048 39176 39250 39297 39344 39454 39483 39634 39768 39967 40158 40355 40443 40502 40687 40776 40912
+# [172] 40943 41183 41473 41656 41798 41944 42041 42149 42484 42797 43478 43494 44274 45005 45143 45333 45434 45474 45617
+# [191] 45719 45777 46013 46327 46393 46987 47089 47165 48490 48632 48727 48793 48802 49044 49097 49334 49380 49464 49623
+# [210] 49640 49771 49868 49977 50248 50354 50589 50660 51210 51222 51235 51293 51394 51402 51436 52529 52792 53030 53177
+# [229] 53903 54007 54153 54180 54277 54486 54861 54950 55010 55141 55185 55369 55430 55612 55719 55997 56044 56313 56460
+# [248] 56665 56936 57052 57317 57379 57992 58008 58033 66369 66415 66501 66746 66899 67327 67572 67863 68187 68536 68810
+# [267] 69188 69864 69880
 
-### Only 4 nights were there were oddities like this. All <5, not likely to 
-### affect the data.
+allsites[tweaks, ]
+# A tibble: 269 x 8
+#   datetime            pest_nmbr pest_dif reviewed event             site         Yr Julian
+#   <dttm>                  <dbl>    <dbl> <chr>    <chr>             <chr>     <dbl>  <dbl>
+# 1 2019-04-30 03:58:01         0        0 No       Sticky roll tweak UCKearney  2019    120
+# 2 2019-05-16 09:56:01         0        0 No       Sticky roll tweak UCKearney  2019    136
+# 3 2019-05-31 06:57:01         0        0 No       Sticky roll tweak UCKearney  2019    151
+  # Shows we can use this vector of row indexes to retrieve the rows
+
+# find adjacent rows
+tweaks_prev <- tweaks - 1
+tweaks_prev
+
+tweaks_nex <- tweaks + 1
+tweaks_nex
+
+tweaks_all <- sort(c(tweaks_prev,tweaks,tweaks_nex))
+
+selected <- allsites[tweaks_all, ]
+selected
+
+selected2 <- selected %>% 
+  filter(pest_dif != 0)
+
+selected2[selected2$pest_dif == lag(selected2$pest_dif, n = 1), ]
+# A tibble: 12 x 8
+#   datetime            pest_nmbr pest_dif reviewed event site           Yr Julian
+#   <dttm>                  <dbl>    <dbl> <chr>    <chr> <chr>       <dbl>  <dbl>
+# 1 NA                         NA       NA NA       NA    NA             NA     NA
+# 2 2019-08-09 13:59:00         7        7 Yes      NA    MWoolf_east  2019    221
+# 3 2019-08-13 14:40:00        33       33 Yes      NA    MWoolf_east  2019    225
+# 4 2019-04-30 03:58:00         1        1 Yes      NA    usda         2019    120
+# 5 2019-08-18 23:28:00         7        1 Yes      NA    usda         2019    230
+# 6 2020-06-18 05:58:00        14        1 Yes      NA    mikewoolf1   2020    170
+# 7 2020-06-22 13:59:00        24        6 Yes      NA    mikewoolf1   2020    174
+# 8 2020-09-21 05:57:00         1        1 Yes      NA    mikewoolf1   2020    265
+# 9 2020-08-10 10:58:00        23        1 Yes      NA    mikewoolf2   2020    223
+# 10 2020-09-21 04:58:00         9        9 Yes      NA    mikewoolf2   2020    265
+# 11 2020-07-17 10:59:00        13        1 Yes      NA    mikewoolf3   2020    199
+# 12 2020-09-21 05:26:00         5        1 Yes      NA    mikewoolf5   2020    265
+   # does not appear to capture all events of concern
+
+allsites %>% 
+  filter(pest_nmbr == 85 & pest_dif == 85 & lag(event == "Sticky roll tweak", n = 1))
 
 #--------------------------------------------------------------------------
 # Examine when and where daytime fliers occur (defined as 6AM to 6PM)
