@@ -30,8 +30,8 @@ head(gt20_y19)
 head(gt20_y20)
 
 # Load original data files into memory
-allsites19 <- readr::read_csv("./allsites_y19.csv")
-allsites20 <- readr::read_csv("./allsites_y20.csv")
+allsites19 <- read.csv("./allsites_y19_scrubbed.csv") 
+allsites20 <- read.csv("./allsites_y20_scrubbed.csv")
 alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
 alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
 
@@ -72,9 +72,12 @@ temps20 <- dplyr::left_join(gt20_y20,alltemps20)
 head(counts19,2) # 1534 obs
 # A tibble: 2 x 10
 #   site         Year Julian  nObs NowPrDay datetime            pest_nmbr pest_dif reviewed event
-#   <chr>       <dbl>  <dbl> <dbl>    <dbl> <dttm>                  <dbl>    <dbl> <chr>    <chr>
+#   <chr>       <dbl>  <dbl> <dbl>    <dbl> <chr>                   <int>    <int> <chr>    <chr>
 # 1 MWoolf_east  2019    187    48       28 2019-07-06 00:28:00        20        0 Yes      NA   
 # 2 MWoolf_east  2019    187    48       28 2019-07-06 00:58:00        20        0 Yes      NA   
+
+# datetime is char, needs to be dttm
+
 
 head(temps19,2) #407 obs
 # A tibble: 2 x 10
@@ -83,15 +86,11 @@ head(temps19,2) #407 obs
 # 1 MWoolf_east  2019    187    48       28 2019-07-06 00:00:00     70.6    68.9    72.3   53.4
 # 2 MWoolf_east  2019    187    48       28 2019-07-06 01:00:00     70.1    68.7    71.4   51.9
 
-### Get time from midnight as a numeric variable
-x <- head(counts19,20)
-x$datetime # show the datetime vector
 
-### Store local time zone in memory for subsequent steps
 realtz  <- "America/Los_Angeles"
-faketz <- "Atlantic/Cape_Verde" # UCT -1
 
-### Get Date and Minutes from sunset
+### Get time from midnight as a numeric variable 
+    # Not doing this because prelminary says it is not worth it
 
 # Set timezone as recorded (R defaults to UTC, but was PDT)
 counts19$datetime <- timechange::time_force_tz(counts19$datetime, tz = realtz)

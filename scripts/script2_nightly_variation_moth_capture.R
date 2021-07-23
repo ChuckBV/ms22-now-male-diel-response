@@ -4,14 +4,26 @@
 # Find sites and nights with over 20 captures per night (better estimate of
 # distribution of capture times). 
 #
+# "script2b_... R deleted (but can be resurrected through version control)
+# This second version of this script attempted to correct an error introduced
+# by the cleaning feature of Trapview. That issue was instead address by 
+# Jake Wenger (see wenger_scrubbed_role_files.pdf)
+#
 #===========================================================================#
 
 library(tidyverse)
 library(lubridate)
 
 # Load count data
-allsites19 <- readr::read_csv("./allsites_y19.csv")
-allsites20 <- readr::read_csv("./allsites_y20.csv")
+x <- read.csv("./allsites_y19_scrubbed.csv")
+  # Use base R read.csv because specifying data type in read_csv is too complicated
+str(x) # reveals that x$event is a character variable
+unique(x$event)
+  # Using base R because many NAs make column specification problems and 
+  # specifying columns in readr::read_csv is too difficult
+
+allsites19 <- read.csv("./allsites_y19_scrubbed.csv") 
+allsites20 <- read.csv("./allsites_y20_scrubbed.csv")
 
 # Names of site
 unique(allsites19$site)
@@ -61,10 +73,10 @@ FSA::headtail(CountsGt20)
 # site Year Julian nObs NowPrDay
 # 1  MWoolf_east 2019    187   48       28
 # 2  MWoolf_east 2019    189   48       39
-# 3  MWoolf_east 2019    221   50       21
-# 32       Perez 2019    230   49       29
-# 33       Perez 2019    232   49       25
-# 34        usda 2019    266   49       20
+# 3  MWoolf_east 2019    228   47       26
+# 25       Perez 2019    230   47       29
+# 26       Perez 2019    232   47       25
+# 27        usda 2019    266   47       20
 
 unique(CountsGt20$site)
 # [1] "MWoolf_east" "MWoolf_west" "Perez"       "usda" 
@@ -100,25 +112,24 @@ nightly20 %>%
             Max = max(Julian),
             nDays = n_distinct(Julian),
             NowPrDay = sum(NowPrDay, na.rm = TRUE))
-# A tibble: 5 x 6
 #   site        Year   Min   Max nDays NowPrDay
-#   <chr>      <dbl> <dbl> <dbl> <int>    <dbl>
-# 1 mikewoolf1  2020   113   266   146      294
-# 2 mikewoolf2  2020    72   266   179      394
-# 3 mikewoolf3  2020   112   266   145      257
+#   <chr>      <dbl> <dbl> <dbl> <int>    <int>
+# 1 mikewoolf1  2020   113   266   146      278
+# 2 mikewoolf2  2020    72   266   179      381
+# 3 mikewoolf3  2020   112   266   145      241
 # 4 mikewoolf4  2020    66   266   181      376
-# 5 mikewoolf5  2020   189   266    78       64
+# 5 mikewoolf5  2020   189   266    78       58
 
 CountsGt20_y20 <- nightly20 %>% 
   filter(NowPrDay >= 20)
 FSA::headtail(CountsGt20_y20)
-#    site Julian nObs NowPrDay
-# 1  mikewoolf1    170   49       20
-# 2  mikewoolf1    174   22       25
-# 3  mikewoolf1    265   50       21
-# 8  mikewoolf4    261   48       20
-# 9  mikewoolf4    263   47       20
-# 10 mikewoolf4    265   51       38
+#         site Year Julian nObs NowPrDay
+# 1 mikewoolf1 2020    265   46       20
+# 2 mikewoolf2 2020    265   40       54
+# 3 mikewoolf2 2020    266   19       51
+# 6 mikewoolf4 2020    261   48       20
+# 7 mikewoolf4 2020    263   47       20
+# 8 mikewoolf4 2020    265   51       38
 
 unique(CountsGt20_y20$site)
 # [1] "mikewoolf1" "mikewoolf2" "mikewoolf3" "mikewoolf4"
