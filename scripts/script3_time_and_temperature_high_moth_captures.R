@@ -2,7 +2,7 @@
 # script3_time_and_temperature_high_moth_captures.R
 # 
 # Examine temperatures and times of capture fore sites and nights with high
-# moth capture
+# moth capture. Note that the gt20 files are are from the "scrubbed data"
 #
 #===========================================================================#
 
