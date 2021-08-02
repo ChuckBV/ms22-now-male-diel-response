@@ -56,4 +56,10 @@ alltemps19
 # how many temperature records per day?
 alltemps19 %>% 
   mutate(Yr = year(datetime),
-         Julian = yday(datetime))
+         Julian = yday(datetime)) %>% 
+  group_by(site,Yr,Julian) %>% 
+  summarise(nObs = n()) %>% #798 records before filtering
+  filter(nObs != 24) #18 exceptions
+  # 24 in almost all cases
+
+
