@@ -5,10 +5,9 @@
 Accomplished with Wenger script 
  
 ## Examine data outside the hours of 12AM to 7AM. Factors
-
-     - Date
-	 - Temperature
+ - Date
+ - Temperature
 
 ## Examine data in the hours of 12AM to 7AM
-     - First recording  vs temperature
+ - First recording  vs temperature
 
