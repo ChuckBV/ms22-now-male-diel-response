@@ -4,7 +4,10 @@
 # PARTS
 # 1. Load combined 2019 and 2020 count and temperature data files (line 15)
 # 2. Merge and 2019 and 2020 count data (line 25)
-# 3. Explore count data only by year, month, site, etc (line 62)
+# 3. Merge 2019 and 2020 temperature data(line 74)
+# 4. Merge non-zero count data and temperature data (line 161)
+# 
+# Output file "combined" saved as...
 #
 #===========================================================================#
 
@@ -57,7 +60,7 @@ counts_y19y20 <- counts_y19y20 %>%
          Hr = hour(datetime))
 
 head(counts_y19y20,2)
-# datetime pest_dif      site   Yr Mnth Julian Hr
+#              datetime pest_dif      site   Yr Mnth Julian Hr
 # 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13
 # 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1
 
@@ -71,73 +74,7 @@ offhrs <- counts_y19y20 %>%
 ### than subdivide the data set. That allows a more direct examination of 
 ### proportion by month
 
-#-- 3. Explore count data only by year, month, site, etc --------------------
-
-head(offhrs,2)
-#              datetime pest_dif      site   Yr Mnth Julian Hr
-# 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13
-# 2 2019-05-03 20:56:00        1 UCKearney 2019  May    123 20
-
-offhrs %>% 
-  group_by(Yr,site) %>% 
-  summarise(nObs = n())
-# A tibble: 10 x 3
-# Groups:   Yr [2]
-# Yr site         nObs
-#    <dbl> <chr>       <int>
-# 1  2019 MWoolf_east    16
-# 2  2019 MWoolf_west    70
-# 3  2019 Perez           7
-# 4  2019 UCKearney      13
-# 5  2019 usda           17
-# 6  2020 mikewoolf1     18
-# 7  2020 mikewoolf2     13
-# 8  2020 mikewoolf3     20
-# 9  2020 mikewoolf4     21
-# 10  2020 mikewoolf5     12
-#-- Proportional to the overall number captured at the sites? We can come back
-#-- to that. The question is more meaningful for 2019 than 2020
-
-offhrs %>% 
-  group_by(Yr,Mnth) %>% 
-  summarise(nObs = n())
-# A tibble: 13 x 3
-# Groups:   Yr [2]
-# Yr Mnth   nObs
-#    <dbl> <ord> <int>
-#  1  2019 Apr       3
-#  2  2019 May       9
-#  3  2019 Jun       5
-#  4  2019 Jul       6
-#  5  2019 Aug      16
-#  6  2019 Sep      36
-#  7  2019 Oct      48
-#  8  2020 Apr      13
-#  9  2020 May      12
-# 10  2020 Jun      13
-# 11  2020 Jul      15
-# 12  2020 Aug      10
-# 13  2020 Sep      21
-#-- Here, too, totals must be known to put these numbers in perspective
-
-offhrs %>% 
-  group_by(Yr,Mnth,Hr) %>% 
-  summarise(nObs = n())
-# A tibble: 106 x 4
-# Groups:   Yr, Mnth [13]
-#      Yr Mnth     Hr  nObs
-#   <dbl> <ord> <int> <int>
-# 1  2019 Apr      13     1
-# 2  2019 Apr      17     1
-# 3  2019 Apr      20     1
-# 4  2019 May       9     2
-# 5  2019 May      10     1
-
-offhrs3 <- offhrs %>% 
-  group_by(Mnth,Hr) %>% 
-  summarise(nObs = n())
-
-#-- 4. Merge to temperature data and examine by temperature -------
+#-- 3. Merge 2019 and 2020 temperature data -------
 
 alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
 alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
@@ -182,9 +119,6 @@ alltemps20$site[alltemps20$site == "MWT3"] <- "mikewoolf3"
 alltemps20$site[alltemps20$site == "MWT4"] <- "mikewoolf4"
 alltemps20$site[alltemps20$site == "MWT5"] <- "mikewoolf5"
 
-alltemps19$site
-
-
 unique(alltemps19$site)
 # [1] [1] "UCKearney"   "usda"        "Perez"       "mikewoolf1"  "MWoolf_east"
 
@@ -220,10 +154,11 @@ temps
 
 # Merge temps to counts w left join, so that records in temps are retained only
 # if they match a record in counts
-
 length(temps$degf_avg[is.na(temps$degf_avg)])
 # [1] 1
 temps <- temps[!is.na(temps$datetime),] # drop the 1 NA in case that is a problem
+
+#-- 4. Merge non-zero Count data to corresponding temperature records -------
 
 counts_y19y20$datetime <- NULL
 temps$datetime <- NULL
@@ -306,3 +241,4 @@ combined[!complete.cases(combined), ]
 combined <- combined[complete.cases(combined), ]
 combined
 
+write.csv(combined,"./data/merged_count_and_temp_data.csv",row.names = FALSE)
