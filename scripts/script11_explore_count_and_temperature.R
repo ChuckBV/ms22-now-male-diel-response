@@ -5,7 +5,10 @@
 #
 # PARTS
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  
-# 2.  
+# 2.  Examine captures after 7AM (before midnight) (line 64)  
+#
+# combined--imported as created in script10
+# combined2--adds categorical variable for off hours
 #
 #===========================================================================#
 
@@ -61,4 +64,40 @@ combined %>%
 #-- Multiple obs per night in ca. 60% of cases, even though
 #-- data are in hour increments
 
-#-- 2. Exam---------
+#-- 2. Examine captures after 7AM (before midnight) -------------------------
+
+# Create variable marking offhours 
+combined2 <- combined %>% 
+  mutate(offhrs = ifelse(Hr <= 7,"No","Yes"))
+
+# Examine other categorical variables individual
+combined2 %>% 
+  group_by(Yr,offhrs) %>% 
+  summarise(nObs = n())
+# A tibble: 4 x 3
+# Groups:   Yr [2]
+# Yr offhrs  nObs
+#   <dbl> <chr>  <int>
+# 1  2019 No       646
+# 2  2019 Yes      114
+# 3  2020 No       586
+# 4  2020 Yes       82
+
+#-- R has table functions that would apply a chi square test. Such a test
+#-- might find a significant different between the years, but it would not
+#-- be important when comparing 12 vs. 15%
+
+combined2 %>% 
+  group_by(site,offhrs) %>% 
+  summarise(nObs = n()) %>% 
+  pivot_wider(names_from = site, values_from = nObs)
+# A tibble: 2 x 10
+#   offhrs mikewoolf1 mikewoolf2 mikewoolf3 mikewoolf4 mikewoolf5 MWoolf_east Perez UCKearney  usda
+#   <chr>       <int>      <int>      <int>      <int>      <int>       <int> <int>     <int> <int>
+# 1 No            406        137        133        171         24          95    96        66   104
+# 2 Yes            88         13         20         21         10          16     7        10    11
+
+# somewhat consistent when there were many captures, more random when there
+# were fewer
+
+### Now we can examine month and temperature (next time)
