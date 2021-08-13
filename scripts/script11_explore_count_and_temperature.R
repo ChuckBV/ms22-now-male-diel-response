@@ -101,3 +101,93 @@ combined2 %>%
 # were fewer
 
 ### Now we can examine month and temperature (next time)
+
+# How many "bins" do we have for month?
+combined2 %>% 
+  filter(Mnth.x != Mnth.y) 
+  #-- Same thing, retatined from both sources in merge
+
+combined2 %>% 
+  group_by(Mnth.x) %>% 
+  summarise(nObs = n())
+
+# Make Mnth.x into a factor to conserve order
+combined2$Mnth.x <- factor(combined2$Mnth.x, levels = c("Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"))
+combined2
+
+combined2 %>% 
+  group_by(Mnth.x,offhrs) %>% 
+  summarise(nObs = n()) 
+# Mnth.x offhrs  nObs
+# <fct>  <chr>  <int>
+#  1 Mar    No         2
+#  2 Apr    No        73
+#  3 Apr    Yes       13
+#  4 May    No        40
+#  5 May    Yes       15
+#  6 Jun    No        86
+#  7 Jun    Yes       18
+#  8 Jul    No       240
+#  9 Jul    Yes       19
+# 10 Aug    No       400
+# 11 Aug    Yes       26
+# 12 Sep    No       349
+# 13 Sep    Yes       57
+# 14 Oct    No        42
+# 15 Oct    Yes       48
+
+#-- We can ignore March. Suggests similar trends until October. Can be
+#-- Processed with some combination of stacked bar chart and a table 
+#-- with proportions. Will be necessary to re-arrange the data, particularly
+#-- for the latter 
+
+x <- combined2 %>% 
+  group_by(Mnth.x,offhrs) %>%
+  filter(Mnth.x != "Mar") %>% 
+  summarise(nObs = n()) 
+x # as expected
+
+x$Mnth.x <- droplevels(x$Mnth.x)
+
+levels(x$Mnth.x)
+# [1] "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct"
+
+# Use pivot_wider to get "No" and "Yes" on same line
+x <- x %>% 
+  pivot_wider(names_prefix = "Offhours_", names_from = offhrs, values_from = nObs)
+
+x %>%
+  mutate(pct_offhours = 100*(Offhours_Yes/(Offhours_No + Offhours_Yes)))
+#   Mnth.x Offhours_No Offhours_Yes pct_offhours
+#   <fct>        <int>        <int>        <dbl>
+# 1 Apr             73           13        15.1 
+# 2 May             40           15        27.3 
+# 3 Jun             86           18        17.3 
+# 4 Jul            240           19         7.34
+# 5 Aug            400           26         6.10
+# 6 Sep            349           57        14.0 
+# 7 Oct             42           48        53.3 
+
+# Go back to combined2 and examine other trends
+combined2 <- combined2 %>% 
+  filter(Mnth.y != "Mar")
+#-- drops two observations
+combined2$Mnth.x <- droplevels(combined2$Mnth.x)
+
+# Plot of observations by hour with vertically aligned panels for month
+y <- combined2 %>% 
+  group_by(Mnth.x,Hr) %>% 
+  summarise(nObs = n())
+
+ggplot(data = y, aes(x = Hr, y = nObs)) +
+  geom_col() +
+  facet_grid(Mnth.x ~ ., scales = "free_y")
+
+# Add temperature
+ggplot(data = combined2, aes(x = Hr, y = degf_avg)) +
+  geom_point() +
+  facet_grid(Mnth.x ~ .)
+
+
+  
+
