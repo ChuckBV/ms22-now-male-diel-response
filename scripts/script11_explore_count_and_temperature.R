@@ -5,7 +5,7 @@
 #
 # PARTS
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  
-# 2.  Examine captures after 7AM (before midnight) (line 64)  
+# 2. Examine captures after 7AM (before midnight) (line 64)  
 #
 # combined--imported as created in script10
 # combined2--adds categorical variable for off hours
@@ -66,7 +66,7 @@ combined %>%
 
 #-- 2. Examine captures after 7AM (before midnight) -------------------------
 
-# Create variable marking offhours 
+# Create variable marking off-hours 
 combined2 <- combined %>% 
   mutate(offhrs = ifelse(Hr <= 7,"No","Yes"))
 
@@ -105,7 +105,7 @@ combined2 %>%
 # How many "bins" do we have for month?
 combined2 %>% 
   filter(Mnth.x != Mnth.y) 
-  #-- Same thing, retatined from both sources in merge
+  #-- Same thing, retained from both sources in merge
 
 combined2 %>% 
   group_by(Mnth.x) %>% 
@@ -179,14 +179,85 @@ y <- combined2 %>%
   group_by(Mnth.x,Hr) %>% 
   summarise(nObs = n())
 
-ggplot(data = y, aes(x = Hr, y = nObs)) +
+p1 <- ggplot(data = y, aes(x = Hr, y = nObs)) +
   geom_col() +
-  facet_grid(Mnth.x ~ ., scales = "free_y")
+  facet_grid(Mnth.x ~ ., scales = "free_y") +
+  theme_bw() +
+  xlab("Hour of day") +
+  ylab("Adults captured") +
+  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 8),
+        axis.title.x = element_text(color = "black", size = 10),
+        axis.title.y = element_text(color = "black", size = 10),
+        legend.title = element_text(color = "black", size = 8),
+        legend.text = element_text(color = "black", size = 8))
+
+p1
+
+ggsave(filename = "Fig_cap_v_time_of_day.jpg", plot = p1, device = "jpg", path = "./results",
+       dpi = 300, width = 5.83, height = 9.4, units = "in")
+
+# ggsave(filename = "Fig_cap_v_time_of_day.eps", plot = p1, device = "eps", path = "./results", 
+#        dpi = 300, width = 5.83, height = 9.4, units = "in")
+#-- EntSoc maximum is 9.4 inches high. For jpg saved for ease of use in draft,
+#-- but eps preferable for production
+
 
 # Add temperature
 ggplot(data = combined2, aes(x = Hr, y = degf_avg)) +
   geom_point() +
   facet_grid(Mnth.x ~ .)
+
+# Ask if there is correlation between temperature and captures during 
+# daylight hours
+
+daylt <- combined2 %>% 
+  filter(Hr > 7 & Hr < 18)
+
+p2 <- ggplot(data = daylt) +
+  geom_bar(aes(x = Mnth.x)) +
+  theme_bw() +
+  xlab("Month") +
+  ylab("Adults captured during daylight hours") +
+  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 8),
+        axis.title.x = element_text(color = "black", size = 10),
+        axis.title.y = element_text(color = "black", size = 10),
+        legend.title = element_text(color = "black", size = 8),
+        legend.text = element_text(color = "black", size = 8))
+
+p2
+
+ggsave(filename = "fig_daytime_fliers_by_month.jpg", 
+      plot = p2, device = "jpg", path = "./results", 
+      dpi = 300, width = 5.83, height = 3.9, units = "in")  
+
+
+ggplot(daylt, aes(x = degf_avg, y = Hr)) +
+  geom_point(aes(colour = Mnth.x))
+#-- color does not clarify
+
+p3 <- ggplot(daylt, aes(x = Hr, y = degf_avg)) +
+  geom_point() +
+  facet_grid(Mnth.x ~ .) +
+  theme_bw() +
+  xlab("Hour of day") +
+  ylab("Degrees Fahrenheit") +
+  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 8),
+        axis.title.x = element_text(color = "black", size = 10),
+        axis.title.y = element_text(color = "black", size = 10),
+        legend.title = element_text(color = "black", size = 8),
+        legend.text = element_text(color = "black", size = 8))
+
+p3
+
+ggsave(filename = "fig_daytime_fliers_by_hour_and_temp.jpg", 
+       plot = p3, device = "jpg", path = "./results", 
+       dpi = 300, width = 5.83, height = 3.9, units = "in")  
+#-- On average, gets hotter as hours since sunup increases.
+#-- Given this factor, this graphic suggests no relationship
+#-- between temperature and hour of capture for daytime fliers
 
 
   
