@@ -50,3 +50,6 @@ ggplot(combined3, aes(x = Julian, y = degf)) +
 
 ggplot(combined3, aes(x = Julian, y = hr_obs1)) +
   geom_point() 
+
+ggplot(combined3, aes(x = degf, y = hr_obs1)) +
+  geom_point() 
