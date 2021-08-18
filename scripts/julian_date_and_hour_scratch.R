@@ -1,0 +1,49 @@
+# julian_date_and_hour_scratch.R
+
+library(tidyverse)
+
+# Create a fake data set
+hr <- c(seq(0,7),seq(18,23))
+hr
+# [1]  0  1  2  3  4  5  6  7 18 19 20 21 22 23
+hr <- rep(hr, 5)
+
+jday <- seq(151,155)
+jday <- rep(jday,each = 14)
+
+df1 <- data.frame(jday,hr)
+head(df1)
+#   jday hr
+# 1  151  0
+# 2  151  1
+# 3  151  2
+# 4  151  3
+# 5  151  4
+# 6  151  5
+
+## Shift hour and day. Hours 0-5 should be with the same Julian date
+## as the preceding hours 18-23. Hour 18 becomes 0, hour 23 becomes 5, and hours
+## 0 to 5 become hours 6 to 14. If the new hours is > 5 then Julian is set
+## back 1
+
+df2 <- df1 %>% 
+  mutate(jday2 = ifelse(hr <= 7, jday - 1, jday),
+         hr2 = ifelse(hr > 7, hr - 18, hr + 6)) %>% 
+  filter(jday2 == 151) # select just 1 day for clarity
+
+df2
+#    jday hr jday2 hr2
+# 1   151 18   151   0
+# 2   151 19   151   1
+# 3   151 20   151   2
+# 4   151 21   151   3
+# 5   151 22   151   4
+# 6   151 23   151   5
+# 7   152  0   151   6
+# 8   152  1   151   7
+# 9   152  2   151   8
+# 10  152  3   151   9
+# 11  152  4   151  10
+# 12  152  5   151  11
+# 13  152  6   151  12
+# 14  152  7   151  13
