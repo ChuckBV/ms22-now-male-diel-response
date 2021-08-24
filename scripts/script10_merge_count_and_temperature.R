@@ -45,7 +45,7 @@ str(counts_y19y20)
 
 counts_y19y20 %>% 
   filter(reviewed == "No")
-# datetime pest_nmbr pest_dif reviewed event  site
+#              datetime pest_nmbr pest_dif reviewed event  site
 # 1 2019-08-16 15:56:00         3        3       No  <NA> Perez
 # 2 2019-08-19 04:28:00         1        1       No  <NA> Perez
 # 3 2019-08-19 00:28:00         1        1       No  <NA>  usda
@@ -74,7 +74,11 @@ offhrs <- counts_y19y20 %>%
 ### than subdivide the data set. That allows a more direct examination of 
 ### proportion by month
 
-#-- 3. Merge 2019 and 2020 temperature data -------
+#-- 3. Seasonal overview using just the count data from both years  ---------
+
+
+
+#-- 4. Merge 2019 and 2020 temperature data ---------------------------------
 
 alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
 alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")

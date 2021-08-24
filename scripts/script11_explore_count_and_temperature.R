@@ -70,18 +70,23 @@ combined %>%
 combined2 <- combined %>% 
   mutate(offhrs = ifelse(Hr <= 7,"No","Yes"))
 
-# Examine other categorical variables individual
-combined2 %>% 
+# Examine time of flight be year (2 x 2 matrix)
+x <- combined2 %>% 
   group_by(Yr,offhrs) %>% 
   summarise(nObs = n())
-# A tibble: 4 x 3
-# Groups:   Yr [2]
-# Yr offhrs  nObs
-#   <dbl> <chr>  <int>
-# 1  2019 No       646
-# 2  2019 Yes      114
-# 3  2020 No       586
-# 4  2020 Yes       82
+
+x <- table(combined2$Yr,combined2$offhrs)
+x
+
+#       No Yes
+# 2019 646 114
+# 2020 586  82
+
+prop.table(x,1) # 1 gives row percentages
+
+#       No       Yes
+# 2019 0.8500000 0.1500000
+# 2020 0.8772455 0.1227545
 
 #-- R has table functions that would apply a chi square test. Such a test
 #-- might find a significant different between the years, but it would not
