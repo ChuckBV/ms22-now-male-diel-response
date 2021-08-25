@@ -42,5 +42,13 @@ temps <- temps %>%
   # different from script12 because all hours included
 
 # What time of day had the most low temperatures?
-temps %>% 
-  
+lo_temp <- temps %>% 
+  group_by(Yr,site,Mnth,Julian2) %>% 
+  summarise(min_temp = min(degf_lo))
+
+lo_temp2 <- left_join(lo_temp,temps) %>% 
+  filter(min_temp == degf_lo)
+lo_temp2
+
+ggplot(lo_temp2) +
+  geom_col(aes(x = hr2, y = ))
