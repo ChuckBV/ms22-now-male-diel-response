@@ -17,8 +17,8 @@ library(lubridate)
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
 
 # Load original data files into memory
-allsites19 <- read.csv("./allsites_y19_scrubbed.csv") 
-allsites20 <- read.csv("./allsites_y20_scrubbed.csv")
+allsites19 <- read.csv("./data/allsites_y19_scrubbed.csv") 
+allsites20 <- read.csv("./data//allsites_y20_scrubbed.csv")
 
 # Examine and fix discrepancy in site names in 2020 capture and temperature data
 unique(allsites20$site)
@@ -76,12 +76,103 @@ offhrs <- counts_y19y20 %>%
 
 #-- 3. Seasonal overview using just the count data from both years  ---------
 
+# temporary data frame allsites for current figure
+allsites <- counts_y19y20 %>% 
+  mutate(wk = epiweek(datetime))
+head(allsites,2)
+#              datetime pest_dif      site   Yr Mnth Julian Hr wk
+# 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13 17
+# 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1 18
+
+allsites$caldate <- as.Date(allsites$datetime)
+
+
+daily <- allsites %>% 
+  group_by(Yr,wk,caldate,site) %>% 
+  summarize(Date = min(caldate),
+            orangeworm = sum(pest_dif))
+daily
+# A tibble: 595 x 6
+# Groups:   Yr, wk, caldate [275]
+#      Yr    wk caldate    site      Date       orangeworm
+#   <dbl> <dbl> <date>     <chr>     <date>          <int>
+# 1  2019    17 2019-04-24 usda      2019-04-24         12
+# 2  2019    17 2019-04-25 usda      2019-04-25          3
+# 3  2019    17 2019-04-26 UCKearney 2019-04-26          7
+
+wkly19 <- daily %>% 
+  filter(Yr == 2019) %>% 
+  group_by(Yr,wk,site) %>% 
+  summarize(Date = min(Date),
+            orangeworm = sum(orangeworm))
+wkly19
+# A tibble: 87 x 5
+# Groups:   Yr, wk [28]
+#      Yr    wk site        Date       orangeworm
+#   <dbl> <dbl> <chr>       <date>          <int>
+# 1  2019    17 UCKearney   2019-04-26          7
+# 2  2019    17 usda        2019-04-24         18
+# 3  2019    18 UCKearney   2019-05-02          3
+
+wkly20 <- daily %>% 
+  filter(Yr == 2020) %>% 
+  group_by(Yr,wk,site) %>% 
+  summarize(Date = min(Date),
+            orangeworm = sum(orangeworm))
+wkly20
+# A tibble: 90 x 5
+# Groups:   Yr, wk [25]
+#      Yr    wk site       Date       orangeworm
+#   <dbl> <dbl> <chr>      <date>          <int>
+# 1  2020    11 mikewoolf4 2020-03-09          5
+# 2  2020    13 mikewoolf4 2020-03-24          1
+# 3  2020    15 mikewoolf4 2020-04-11          2
+
+p19 <- ggplot(wkly19, aes(x = Date,y = orangeworm)) +
+  geom_col(width = 10) +
+  facet_grid(site ~ .) +
+  # any width over 3.0 gives a warning about non-overlapping x intervals
+  # I think it looks better with width = 5.0
+  theme_bw() +
+  xlab("") +
+  ylab("NOW per week") +
+  theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 9),
+        axis.title.x = element_text(color = "black", size = 9),
+        axis.title.y = element_text(color = "black", size = 9),
+        legend.title = element_text(color = "black", size = 14),
+        legend.text = element_text(color = "black", size = 14))
+
+p19
+
+ggsave(filename = "Y19_trapview_wkly_by_site.jpg", p19, path = "./results",
+       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+p20 <- ggplot(wkly20, aes(x = Date,y = orangeworm)) +
+  geom_col(width = 10) +
+  facet_grid(site ~ .) +
+  # any width over 3.0 gives a warning about non-overlapping x intervals
+  # I think it looks better with width = 5.0
+  theme_bw() +
+  xlab("") +
+  ylab("NOW per week") +
+  theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 9),
+        axis.title.x = element_text(color = "black", size = 9),
+        axis.title.y = element_text(color = "black", size = 9),
+        legend.title = element_text(color = "black", size = 14),
+        legend.text = element_text(color = "black", size = 14))
+
+p20
+
+ggsave(filename = "Y20_trapview_wkly_by_site.jpg", p20, path = "./results",
+       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 
 #-- 4. Merge 2019 and 2020 temperature data ---------------------------------
 
-alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
-alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
+alltemps19 <- readr::read_csv("./data/trapview_temps_degf_y19.csv")
+alltemps20 <- readr::read_csv("./data/trapview_temps_degf_y20.csv")
 
 # Examine and fix discrepancy in site names in 2020 capture and temperature data
 unique(allsites20$site)
@@ -168,7 +259,7 @@ counts_y19y20$datetime <- NULL
 temps$datetime <- NULL
 ### For counts, the hour function makes the reading more approximate. For 
 ### temps, data were sent every hour on the hour and were a summary of the 
-### previous hour, so the hour function gives us somthing that matches the
+### previous hour, so the hour function gives us something that matches the
 ### counts data
 
 combined <- left_join(counts_y19y20, temps, by = c("Yr","site","Julian","Hr"))
