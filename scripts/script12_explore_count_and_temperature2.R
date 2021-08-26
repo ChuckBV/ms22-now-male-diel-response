@@ -174,9 +174,25 @@ ggsave(filename = "fig_vbar_first_captures_by_temperature.jpg",
 ###########################################################
 ### Does seasonality (photoperiod) affect relationship?
 
-ggplot(combined3, aes(x = hr2, y = degf)) +
+p4 <-  ggplot(combined3, aes(x = degf, y = hr2)) +
   geom_point() +
-  facet_grid(Mnth.x ~.)
+  theme_bw() +
+  facet_grid(Mnth.x ~.) +
+  xlab("Degrees Fahrenheit") +
+  ylab("First capture (hour after sunset)") +
+  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 8),
+        axis.title.x = element_text(color = "black", size = 10),
+        axis.title.y = element_text(color = "black", size = 10),
+        legend.title = element_text(color = "black", size = 8),
+        legend.text = element_text(color = "black", size = 8))
+
+p4
+
+ggsave(filename = "first_cap_vs_temp_by_month.jpg", 
+       plot = p4, device = "jpg", path = "./results", 
+       dpi = 300, width = 5.83, height = 3.9, units = "in")  
+
 
 ###########################################################
 ### Are there fewer captured overall on hot nights?
