@@ -43,10 +43,10 @@ head(gt20_y19)
 head(gt20_y20)
 
 # Load original data files into memory
-allsites19 <- read.csv("./allsites_y19_scrubbed.csv") 
-allsites20 <- read.csv("./allsites_y20_scrubbed.csv")
-alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
-alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
+allsites19 <- read.csv("./data/allsites_y19_scrubbed.csv") 
+allsites20 <- read.csv("./data/allsites_y20_scrubbed.csv")
+alltemps19 <- readr::read_csv("./data/trapview_temps_degf_y19.csv")
+alltemps20 <- readr::read_csv("./data/trapview_temps_degf_y20.csv")
 
 # Examine and fix discrepancy in site names in 2020 capture and temperature data
 unique(allsites20$site)
