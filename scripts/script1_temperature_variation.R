@@ -13,7 +13,7 @@ library(lubridate)
 #---------------------------------------------------------------------------
 ## Variation in 2019 data
 
-alltemps19 <- readr::read_csv("./trapview_temps_degf_y19.csv")
+alltemps19 <- readr::read_csv("./data/trapview_temps_degf_y19.csv")
 
 ggplot(alltemps19, aes(x = Date_time, y = degf_avg)) +
   geom_line() +
@@ -120,7 +120,7 @@ ggplot(alltemps19, aes(x = as.factor(hr), y = degf_lo)) +
 #---------------------------------------------------------------------------
 ## Variation in 2020 data
 
-alltemps20 <- readr::read_csv("./trapview_temps_degf_y20.csv")
+alltemps20 <- readr::read_csv("./data/trapview_temps_degf_y20.csv")
 head(alltemps20,2)
 # A tibble: 2 x 6
 #   Date_time           degf_avg degf_lo degf_hi rh_avg site 
