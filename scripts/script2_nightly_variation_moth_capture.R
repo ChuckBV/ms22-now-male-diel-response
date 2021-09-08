@@ -15,15 +15,15 @@ library(tidyverse)
 library(lubridate)
 
 # Load count data
-x <- read.csv("./allsites_y19_scrubbed.csv")
+x <- read.csv("./data/allsites_y19_scrubbed.csv")
   # Use base R read.csv because specifying data type in read_csv is too complicated
 str(x) # reveals that x$event is a character variable
 unique(x$event)
   # Using base R because many NAs make column specification problems and 
   # specifying columns in readr::read_csv is too difficult
 
-allsites19 <- read.csv("./allsites_y19_scrubbed.csv") 
-allsites20 <- read.csv("./allsites_y20_scrubbed.csv")
+allsites19 <- read.csv("./data/allsites_y19_scrubbed.csv") 
+allsites20 <- read.csv("./data/allsites_y20_scrubbed.csv")
 
 # Names of site
 unique(allsites19$site)
