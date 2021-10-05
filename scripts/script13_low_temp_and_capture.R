@@ -9,8 +9,6 @@
 library(tidyverse)
 library(lubridate)
 
-
-
 # Need to examine data by night using the counts and temperature data merged
 # in script10, but need to re-define night as done with Julian2 and Hour2
 # in script12

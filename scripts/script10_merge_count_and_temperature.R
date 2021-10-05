@@ -8,6 +8,7 @@
 # 4. Merge non-zero count data and temperature data (line 161)
 # 
 # Output file "combined" saved as...
+#   merged_count_and_temp_data.csv
 #
 #===========================================================================#
 
@@ -30,6 +31,7 @@ unique(allsites20$site)
 head(allsites19)
 head(allsites20)
 
+# Drop counts of zero
 allsites19 <- allsites19 %>% 
   filter(pest_dif > 0)
 #-- 802 observations
@@ -38,10 +40,20 @@ allsites20 <- allsites20 %>%
   filter(pest_dif > 0)
 #-- 681 observations
 
+# Combine 2019 and 2020
 counts_y19y20 <- rbind(allsites19,allsites20)
 
+# Set datetime format
 counts_y19y20$datetime <- as.POSIXct(counts_y19y20$datetime)
 str(counts_y19y20)
+attr(counts_y19y20$datetime,"tzone")
+# ""
+#>>> Get system timezone attribute (takes daylight saving time into account)
+(x <- Sys.timezone())
+# [1] "America/Los_Angeles"
+lubridate::tz(counts_y19y20$datetime) <- x
+attr(counts_y19y20$datetime,"tzone")
+# [1] "America/Los_Angeles"
 
 counts_y19y20 %>% 
   filter(reviewed == "No")
@@ -64,76 +76,78 @@ head(counts_y19y20,2)
 # 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13
 # 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1
 
-str(counts_y19y20)
-
-#-- 1479 obs
-
-offhrs <- counts_y19y20 %>% 
-  filter(Hr > 7)
-### 201 obs, or 13%. For next pass, create a factor within "counts" rather 
-### than subdivide the data set. That allows a more direct examination of 
-### proportion by month
 
 #-- 3. Seasonal overview using just the count data from both years  ---------
 
 # temporary data frame allsites for current figure
 allsites <- counts_y19y20 %>% 
   mutate(wk = epiweek(datetime))
+allsites$caldate <- as.Date(allsites$datetime)
 head(allsites,2)
 #              datetime pest_dif      site   Yr Mnth Julian Hr wk
 # 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13 17
 # 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1 18
 
-allsites$caldate <- as.Date(allsites$datetime)
-
-
 daily <- allsites %>% 
   group_by(Yr,wk,caldate,site) %>% 
-  summarize(Date = min(caldate),
-            orangeworm = sum(pest_dif))
+  summarize(orangeworm = sum(pest_dif)) %>% 
+  rename(Date = caldate)
 daily
-# A tibble: 595 x 6
-# Groups:   Yr, wk, caldate [275]
-#      Yr    wk caldate    site      Date       orangeworm
-#   <dbl> <dbl> <date>     <chr>     <date>          <int>
-# 1  2019    17 2019-04-24 usda      2019-04-24         12
-# 2  2019    17 2019-04-25 usda      2019-04-25          3
-# 3  2019    17 2019-04-26 UCKearney 2019-04-26          7
+# A tibble: 595 x 5
+# Groups:   Yr, wk, Date [275]
+#      Yr    wk Date       site      orangeworm
+#   <dbl> <dbl> <date>     <chr>          <int>
+# 1  2019    17 2019-04-24 usda              12
+# 2  2019    17 2019-04-25 usda               3
+# 3  2019    17 2019-04-26 UCKearney          7
 
-wkly19 <- daily %>% 
-  filter(Yr == 2019) %>% 
-  group_by(Yr,wk,site) %>% 
-  summarize(Date = min(Date),
-            orangeworm = sum(orangeworm))
-wkly19
-# A tibble: 87 x 5
-# Groups:   Yr, wk [28]
-#      Yr    wk site        Date       orangeworm
-#   <dbl> <dbl> <chr>       <date>          <int>
-# 1  2019    17 UCKearney   2019-04-26          7
-# 2  2019    17 usda        2019-04-24         18
-# 3  2019    18 UCKearney   2019-05-02          3
+### Manipulate 2019 data file to improve graph appearance and to get 
+### geom_line to return to 0 for dates with no captures
 
-wkly20 <- daily %>% 
-  filter(Yr == 2020) %>% 
-  group_by(Yr,wk,site) %>% 
-  summarize(Date = min(Date),
-            orangeworm = sum(orangeworm))
-wkly20
-# A tibble: 90 x 5
-# Groups:   Yr, wk [25]
-#      Yr    wk site       Date       orangeworm
-#   <dbl> <dbl> <chr>      <date>          <int>
-# 1  2020    11 mikewoolf4 2020-03-09          5
-# 2  2020    13 mikewoolf4 2020-03-24          1
-# 3  2020    15 mikewoolf4 2020-04-11          2
+daily19 <- daily %>%
+  filter(Yr == 2019)
+(begin19 <- min(daily19$Date))
+#[1] "2019-04-24"
+(end19 <- max(daily19$Date))
+# [1] "2019-10-30"
 
-p19 <- ggplot(wkly19, aes(x = Date,y = orangeworm)) +
-  geom_col(width = 10) +
-  facet_grid(site ~ .) +
+# Rename variable for prettier graph
+daily19$site[daily19$site == "MWoolf_east"] <- "MW East"
+daily19$site[daily19$site == "MWoolf_west"] <- "MW West"
+daily19$site[daily19$site == "usda"] <- "USDA"
+
+Site <- unique(daily19$site)
+#[1] "USDA"      "UCKearney" "MW West"   "Perez"     "MW East"  
+
+# rename site to Site
+daily19$Site <- daily19$site
+daily19$site <- NULL
+#>>> indirect base method used because dplyr complained about ambiguity
+
+
+Dates19 <- (Date = seq(begin19,end19, by = "1 day"))
+
+Site <- rep(Site, each = 190)
+Date <- rep(Dates19, times = 5)
+
+Dates <- data.frame(Site,Date)
+head(Dates)
+head(daily19)
+daily19b <- left_join(Dates,daily19)
+head(daily19b,2)
+#   Site       Date   Yr wk orangeworm
+# 1 USDA 2019-04-24 2019 17         12
+# 2 USDA 2019-04-25 2019 17          3
+daily19b$orangeworm[is.na(daily19b$orangeworm)] <- 0
+
+
+p1 <- ggplot(daily19b, aes(x = Date,y = orangeworm)) +
+  geom_line() +
+  facet_grid(Site ~ .) +
   # any width over 3.0 gives a warning about non-overlapping x intervals
   # I think it looks better with width = 5.0
   theme_bw() +
+  scale_x_date(breaks = as.Date(c("2019-04-01","2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01"))) +
   xlab("") +
   ylab("NOW per week") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
@@ -143,18 +157,59 @@ p19 <- ggplot(wkly19, aes(x = Date,y = orangeworm)) +
         legend.title = element_text(color = "black", size = 14),
         legend.text = element_text(color = "black", size = 14))
 
-p19
+p1
 
-ggsave(filename = "Y19_trapview_wkly_by_site.jpg", p19, path = "./results",
+ggsave(filename = "Y19_trapview_daily_by_site.jpg", p1, path = "./results",
        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
-p20 <- ggplot(wkly20, aes(x = Date,y = orangeworm)) +
-  geom_col(width = 10) +
-  facet_grid(site ~ .) +
+### Get daily counts graph for 2020
+
+daily20 <- daily %>% 
+  filter(Yr == 2020)
+(begin20 <- min(daily20$Date))
+#[1] "2019-03-09"
+(end20 <- max(daily20$Date))
+# [1] "2019-09-22"
+
+# Rename variable for prettier graph
+daily20$site[daily20$site == "mikewoolf1"] <- "West 1"
+daily20$site[daily20$site == "mikewoolf2"] <- "West 2"
+daily20$site[daily20$site == "mikewoolf3"] <- "West 3"
+daily20$site[daily20$site == "mikewoolf4"] <- "West 4"
+daily20$site[daily20$site == "mikewoolf5"] <- "West 5"
+
+(Site <- unique(daily20$site))
+#[1] "West 4" "West 2" "West 1" "West 3" "West 5"
+
+# rename site to Site
+daily20$Site <- daily20$site
+daily20$site <- NULL
+
+Dates20 <- (Date = seq(begin20,end20, by = "1 day"))
+# length = 198
+
+Site <- rep(Site, each = 198)
+Date <- rep(Dates20, times = 5)
+
+Dates20 <- data.frame(Site,Date20)
+head(Dates20)
+head(daily20)
+daily20b <- left_join(Dates20,daily20)
+head(daily20b,2)
+#   Site       Date   Yr wk orangeworm
+# 1 USDA 2019-04-24 2019 17         12
+# 2 USDA 2019-04-25 2019 17          3
+daily20b$orangeworm[is.na(daily20b$orangeworm)] <- 0
+
+
+p2 <- ggplot(daily20b, aes(x = Date,y = orangeworm)) +
+  geom_line( ) +
+  facet_grid(Site ~ .) +
   # any width over 3.0 gives a warning about non-overlapping x intervals
   # I think it looks better with width = 5.0
   theme_bw() +
-  xlab("") +
+  scale_x_date(breaks = as.Date(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
+    xlab("") +
   ylab("NOW per week") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
@@ -163,9 +218,9 @@ p20 <- ggplot(wkly20, aes(x = Date,y = orangeworm)) +
         legend.title = element_text(color = "black", size = 14),
         legend.text = element_text(color = "black", size = 14))
 
-p20
+p2
 
-ggsave(filename = "Y20_trapview_wkly_by_site.jpg", p20, path = "./results",
+ggsave(filename = "Y20_trapview_wkly_by_site.jpg", p2, path = "./results",
        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 
