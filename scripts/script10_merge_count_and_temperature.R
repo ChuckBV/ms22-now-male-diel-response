@@ -4,9 +4,15 @@
 # PARTS
 # 1. Load combined 2019 and 2020 count and temperature data files (line 15)
 # 2. Merge and 2019 and 2020 count data (line 25)
-# 3. Merge 2019 and 2020 temperature data(line 74)
-# 4. Merge non-zero count data and temperature data (line 161)
-# 
+# 3. Seasonal overview using just count data (line 82)
+#    - p1: Daily count by site (line graph) for 2019
+#    - p2: Daily count by site (line graph) for 2020
+# 4. Merge 2019 and 2020 temperature data (line 232)
+# 5. Merge non-zero count data and temperature data (line 319)
+#    - p3: Hourly temperature by site (line graph) for 2019
+#    - p4: Hourly temperature by site (line graph) for 2020
+#    - p1p3: p1 and p3 side by side
+#    - p2p4: p2 and p4 side by side
 # Output file "combined" saved as...
 #   merged_count_and_temp_data.csv
 #
@@ -14,6 +20,7 @@
 
 library(tidyverse)
 library(lubridate)
+library(ggpubr)
 
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
 
@@ -88,6 +95,7 @@ head(allsites,2)
 # 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13 17
 # 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1 18
 
+# sumarize counts by day
 daily <- allsites %>% 
   group_by(Yr,wk,caldate,site) %>% 
   summarize(orangeworm = sum(pest_dif)) %>% 
@@ -147,7 +155,7 @@ p1 <- ggplot(daily19b, aes(x = Date,y = orangeworm)) +
   # any width over 3.0 gives a warning about non-overlapping x intervals
   # I think it looks better with width = 5.0
   theme_bw() +
-  scale_x_date(breaks = as.Date(c("2019-04-01","2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01"))) +
+  scale_x_date(breaks = as.Date(c("2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01"))) +
   xlab("") +
   ylab("NOW per week") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
@@ -191,7 +199,7 @@ Dates20 <- (Date = seq(begin20,end20, by = "1 day"))
 Site <- rep(Site, each = 198)
 Date <- rep(Dates20, times = 5)
 
-Dates20 <- data.frame(Site,Date20)
+Dates20 <- data.frame(Site,Date)
 head(Dates20)
 head(daily20)
 daily20b <- left_join(Dates20,daily20)
@@ -289,6 +297,9 @@ temps
 # 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
 # 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
 
+lubridate::tz(temps$datetime) <- x
+attr(temps$datetime,"tzone")
+
 # Add Yr, Mnth, Julian, and Hr to the temps data set
 temps <- temps %>% 
   mutate(Yr = year(datetime),
@@ -302,13 +313,93 @@ temps
 # 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0  2019 May      136    17
 # 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7  2019 May      136    18
 
+# Temperatures plot for 2019
+temps19 <- temps %>% 
+  filter(Yr == 2019)
+
+# Rename variable for prettier graph
+temps19$site[temps19$site == "mikewoolf1"] <- "MW West"
+temps19$site[temps19$site == "MWoolf_east"] <- "MW East"
+temps19$site[temps19$site == "usda"] <- "USDA"
+
+
+p3 <- ggplot(temps19, aes(x = datetime, y = degf_avg)) +
+  geom_line() +
+  facet_grid(site ~ .) +
+  theme_bw() +
+  scale_x_datetime(date_breaks = "1 month") +
+  xlab("") +
+  ylab("Temperature (degrees Fahrenheit)") +
+  theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 9),
+        axis.title.x = element_text(color = "black", size = 9),
+        axis.title.y = element_text(color = "black", size = 9),
+        legend.title = element_text(color = "black", size = 14),
+        legend.text = element_text(color = "black", size = 14))
+
+p3
+
+ggsave(filename = "Y19_trapview_temps_daily_by_site.jpg", p3, path = "./results",
+       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+
+# Temperatures plot for 2020
+temps20 <- temps %>% 
+  filter(Yr == 2020)
+
+# Rename variable for prettier graph
+temps20$site[temps20$site == "mikewoolf1"] <- "West 1"
+temps20$site[temps20$site == "mikewoolf2"] <- "West 2"
+temps20$site[temps20$site == "mikewoolf3"] <- "West 3"
+temps20$site[temps20$site == "mikewoolf4"] <- "West 4"
+temps20$site[temps20$site == "mikewoolf5"] <- "West 5"
+
+
+p4 <- ggplot(temps20, aes(x = datetime, y = degf_avg)) +
+  geom_line() +
+  facet_grid(site ~ .) +
+  theme_bw() +
+  scale_x_datetime(date_breaks = "1 month") +
+  xlab("") +
+  ylab("Temperature (degrees Fahrenheit)") +
+  theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 9),
+        axis.title.x = element_text(color = "black", size = 9),
+        axis.title.y = element_text(color = "black", size = 9),
+        legend.title = element_text(color = "black", size = 14),
+        legend.text = element_text(color = "black", size = 14))
+
+p4
+
+ggsave(filename = "Y20_trapview_temps_daily_by_site.jpg", p4, path = "./results",
+       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+### Output combined 2019 plots
+
+p1p3 <- ggarrange(p1,p3, ncol = 2)
+p1p3
+
+ggsave(filename = "Y19_counts_temps_daily_by_site.jpg", p1p3, path = "./results",
+       width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+### Output combined 2019 plots
+
+p2p4 <- ggarrange(p2,p4, ncol = 2)
+p2p4
+
+ggsave(filename = "Y20_counts_temps_daily_by_site.jpg", p2p4, path = "./results",
+       width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+
+
 # Merge temps to counts w left join, so that records in temps are retained only
 # if they match a record in counts
 length(temps$degf_avg[is.na(temps$degf_avg)])
 # [1] 1
 temps <- temps[!is.na(temps$datetime),] # drop the 1 NA in case that is a problem
 
-#-- 4. Merge non-zero Count data to corresponding temperature records -------
+head(temps,2)
+
+#-- 5. Merge non-zero Count data to corresponding temperature records -------
 
 counts_y19y20$datetime <- NULL
 temps$datetime <- NULL
@@ -392,3 +483,7 @@ combined <- combined[complete.cases(combined), ]
 combined
 
 write.csv(combined,"./data/merged_count_and_temp_data.csv",row.names = FALSE)
+
+combined19 <-combined %>% 
+  filter(Yr == 2019) %>% 
+  ggplot(aes(x = ))
