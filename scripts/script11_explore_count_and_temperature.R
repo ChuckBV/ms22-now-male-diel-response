@@ -6,6 +6,7 @@
 # PARTS
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  
 # 2. Examine captures after 7AM (before midnight) (line 64)  
+# 3. Captures by hour compared between months (line 108)
 #
 # combined--imported as created in script10
 # combined2--adds categorical variable for off hours
@@ -14,6 +15,10 @@
 
 library(tidyverse)
 library(lubridate)
+library(DescTools)
+library(FSA)
+library(rcompanion)
+library(vcdExtra)
 
 #-- 1. Basic questions about combined data set (multiple obs/night?) --------
 
@@ -52,7 +57,6 @@ combined %>%
   summarise(moths = sum(pest_dif),
             nObs = n()) %>% 
   filter(nObs > 1) 
-
 # A tibble: 331 x 5
 # Groups:   site, Yr [10]
 #   site          Yr Julian moths  nObs
@@ -105,7 +109,7 @@ combined2 %>%
 # somewhat consistent when there were many captures, more random when there
 # were fewer
 
-### Now we can examine month and temperature (next time)
+#-- 3. Captures by hour compared between months ----------------------------
 
 # How many "bins" do we have for month?
 combined2 %>% 
@@ -119,6 +123,68 @@ combined2 %>%
 # Make Mnth.x into a factor to conserve order
 combined2$Mnth.x <- factor(combined2$Mnth.x, levels = c("Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"))
 combined2
+
+### Problem: for median and kruskal-wallis, I need 1 record per moth
+
+# Examine number of moths associated with records
+sort(unique(combined2$pest_dif))
+# [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 16 17 19 20 21 22 23 24 25 26 27 32 35 56
+
+combined2 <- combined2[combined2$Mnth.x != "Mar", ]
+droplevels(combined2$Mnth.x)
+
+combined2$Hour <- ifelse(combined2$Hr >= 18,combined2$Hr - 18,combined2$Hr + 6)
+
+# simplify frequency table then expand
+combined3 <- combined2 %>% 
+  select(Mnth.x,Hour,pest_dif) %>% 
+  rename(Month = Mnth.x,
+         Frequency = pest_dif)
+
+combined3 <- expand.dft(combined3, freq = "Frequency")
+
+combined3$Month <- factor(combined3$Month, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
+
+Desc(Hour ~ Month, data = combined3)
+
+PT = FSA::dunnTest(Hour ~ Month,
+                   data = combined3,
+                   method = "bonferroni")
+
+PT
+
+PT = PT$res
+
+rcompanion::cldList(comparison = PT$Comparison,
+        p.value = PT$P.adj,
+        threshold = 0.05)
+# Group Letter MonoLetter
+# 1   Apr      a       a   
+# 2   Aug      b        b  
+# 3   Jul      c         c 
+# 4   Jun     bc        bc 
+# 5   May      a       a   
+# 6   Oct      d          d
+# 7   Sep      c         c 
+
+p0 <- ggplot(combined2, aes(x = Mnth.x, y = Hour)) +
+  geom_boxplot() +
+  theme_bw() +
+  xlab("Month") +
+  ylab("Hour from sunset") +
+  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 8),
+        axis.title.x = element_text(color = "black", size = 10),
+        axis.title.y = element_text(color = "black", size = 10),
+        legend.title = element_text(color = "black", size = 8),
+        legend.text = element_text(color = "black", size = 8))
+
+p0
+
+ggsave(filename = "boxplot_hour_vs_month.jpg", plot = p0, device = "jpg", path = "./results",
+       dpi = 300, width = 5.83, height = 4.5, units = "in")
+
+
 
 combined2 %>% 
   group_by(Mnth.x,offhrs) %>% 
@@ -182,9 +248,22 @@ combined2$Mnth.x <- droplevels(combined2$Mnth.x)
 # Plot of observations by hour with vertically aligned panels for month
 y <- combined2 %>% 
   group_by(Mnth.x,Hr) %>% 
+  summarise(counts = sum(pest_dif))
+
+sort(unique(y$Hr))
+# [1]  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+
+# Shift start time of clock
+y <- y %>% 
+  mutate(Hour = ifelse(Hr >= 18,Hr - 18,Hr + 6))
+  # now verify
+test <- y %>% 
+  group_by(Hr,Hour) %>% 
   summarise(nObs = n())
 
-p1 <- ggplot(data = y, aes(x = Hr, y = nObs)) +
+
+
+p1 <- ggplot(data = y, aes(x = Hour, y = counts)) +
   geom_col() +
   facet_grid(Mnth.x ~ ., scales = "free_y") +
   theme_bw() +
@@ -209,12 +288,48 @@ ggsave(filename = "Fig_cap_v_time_of_day.jpg", plot = p1, device = "jpg", path =
 
 
 # Add temperature
-ggplot(data = combined2, aes(x = Hr, y = degf_avg)) +
+ggplot(data = combined2, aes(x = Hour, y = degf_avg)) +
   geom_point() +
   facet_grid(Mnth.x ~ .)
 
-# Ask if there is correlation between temperature and captures during 
-# daylight hours
+### Compare median hour per day vs temperature by month
+combined4 <- combined2 %>% 
+  select(Yr,Julian,Mnth.x,Hour,degf_avg,pest_dif)
+  # now in frequency table form
+
+combined5 <- vcdExtra::expand.dft(combined4, freq = "pest_dif")
+
+combined5 <- combined5 %>% 
+  group_by(Yr,Julian) %>% 
+  dplyr::summarise(Hour = median(Hour))
+
+# Merge temperature dat back in
+combined5 <- left_join(combined5,combined4)
+
+combined5 <- combined5[complete.cases(combined5), ]
+
+p2 <- ggplot(combined5, aes(x = Hour, y = degf_avg)) +
+  geom_point() +
+  facet_wrap(vars(Mnth.x), ncol = 3, nrow = 4) +
+  theme_bw() +
+  xlab("Median capture time (Hours after sunset)") +
+  ylab("Degrees F at time of median capture") +
+  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
+        axis.text.y = element_text(color = "black", size = 8),
+        axis.title.x = element_text(color = "black", size = 10),
+        axis.title.y = element_text(color = "black", size = 10),
+        legend.title = element_text(color = "black", size = 8),
+        legend.text = element_text(color = "black", size = 8))
+
+p2
+
+ggsave(filename = "Temp_v_time_med_capture_by_month.jpg", plot = p2, device = "jpg", path = "./results",
+       dpi = 300, width = 5.83, height = 5.83, units = "in")
+
+#-- Need to use purr or similar to examine correlation by month
+
+### Ask if there is correlation between temperature and captures during 
+### daylight hours (not a useful question)
 
 daylt <- combined2 %>% 
   filter(Hr > 7 & Hr < 18)
