@@ -130,17 +130,20 @@ combined2
 sort(unique(combined2$pest_dif))
 # [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 16 17 19 20 21 22 23 24 25 26 27 32 35 56
 
+# Two moths in March, so drop these obs and that category
 combined2 <- combined2[combined2$Mnth.x != "Mar", ]
 droplevels(combined2$Mnth.x)
 
+# Zero hour moved from midnight to sundown. Since these are 
+# pooled dates, it is unecessary to adjust the date
 combined2$Hour <- ifelse(combined2$Hr >= 18,combined2$Hr - 18,combined2$Hr + 6)
 
-# simplify frequency table then expand
 combined3 <- combined2 %>% 
   select(Mnth.x,Hour,pest_dif) %>% 
   rename(Month = Mnth.x,
          Frequency = pest_dif)
-
+# Exapanding the data from a frequency table (# of obs by caetogory) to case form
+# (1 observation per moth)
 combined3 <- expand.dft(combined3, freq = "Frequency")
 
 combined3$Month <- factor(combined3$Month, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
