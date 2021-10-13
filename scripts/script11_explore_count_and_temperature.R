@@ -42,7 +42,7 @@ length(combined$pest_dif[is.na(combined$pest_dif)])
 ### How many cases of multiple entries per day?
 combined %>%  
   group_by(site,Yr,Julian) %>% 
-  summarise(moths = sum(pest_dif),
+  dplyr::summarise(moths = sum(pest_dif),
             nObs = n())
 # A tibble: 577 x 5
 # Groups:   site, Yr [10]
@@ -54,7 +54,7 @@ combined %>%
 
 combined %>% 
   group_by(site,Yr,Julian) %>% 
-  summarise(moths = sum(pest_dif),
+  dplyr::summarise(moths = sum(pest_dif),
             nObs = n()) %>% 
   filter(nObs > 1) 
 # A tibble: 331 x 5
@@ -98,7 +98,7 @@ prop.table(x,1) # 1 gives row percentages
 
 combined2 %>% 
   group_by(site,offhrs) %>% 
-  summarise(nObs = n()) %>% 
+  dplyr::summarise(nObs = n()) %>% 
   pivot_wider(names_from = site, values_from = nObs)
 # A tibble: 2 x 10
 #   offhrs mikewoolf1 mikewoolf2 mikewoolf3 mikewoolf4 mikewoolf5 MWoolf_east Perez UCKearney  usda
@@ -118,7 +118,7 @@ combined2 %>%
 
 combined2 %>% 
   group_by(Mnth.x) %>% 
-  summarise(nObs = n())
+  dplyr::summarise(nObs = n())
 
 # Make Mnth.x into a factor to conserve order
 combined2$Mnth.x <- factor(combined2$Mnth.x, levels = c("Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"))
