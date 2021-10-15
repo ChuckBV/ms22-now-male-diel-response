@@ -77,16 +77,16 @@ combined3[!complete.cases(combined3), ]
 #-- Tibble of 0, all complete cases
 
 combined3 <- combined3 %>% 
-  group_by(Yr,Julian2) %>% 
+  group_by(Yr,Julian2,site) %>% 
   dplyr::summarise(Hr2 = median(Hr2))
 combined3
-# A tibble: 242 x 3
-# Groups:   Yr [2]
-#     Yr Julian2   Hr2
-#   <int>   <int> <dbl>
-# 1  2019     142   8  
-# 2  2019     143  17  
-# 3  2019     144  11 
+# A tibble: 560 x 4
+# Groups:   Yr, Julian2 [242]
+# Yr Julian2 site         Hr2
+#   <int>   <int> <fct>      <dbl>
+# 1  2019     142 mikewoolf1   8  
+# 2  2019     143 mikewoolf1  17  
+# 3  2019     144 mikewoolf1  11   
 
 combined3[!complete.cases(combined3), ]
 #-- Tibble of 0, all complete cases
@@ -117,17 +117,18 @@ x
 # [1] 10.5 10.5 10.5 10.5  9.5 10.5 10.5 10.5 10.5 10.5 10.5 11.5 10.5 11.5  8.5  1.5  3.5  4.5 12.5  1.5 10.5 11.5  5.5  1.5  5.5 10.5 10.5 13.5 11.5
 #-- Confirms the remark above
 length(x)
-# [1] 29
+# [1] 63
 
 combined3 %>% 
   mutate(Hr3 = ifelse(Hr2%%1 != 0,Hr2 - 0.5,Hr2)) %>% 
   filter(Hr3 != Hr2)
-# A tibble: 29 x 4
-# Groups:   Yr [2]
-#      Yr Julian2   Hr2   Hr3
-#   <int>   <int> <dbl> <dbl>
-# 1  2019     154  10.5    10
-# 2  2019     156  10.5    10
+# A tibble: 63 x 5
+# Groups:   Yr, Julian2 [56]
+# Yr Julian2 site          Hr2   Hr3
+# <int>   <int> <fct>       <dbl> <dbl>
+# 1  2019     154 mikewoolf1   10.5    10
+# 2  2019     163 Perez        10.5    10
+# 3  2019     179 usda          9.5     9
 
 #-- Confirms proposed fix, no need for yet another variable
 
@@ -140,25 +141,26 @@ combined3[!complete.cases(combined3), ]
 
 combined4 <- left_join(combined3,combined2)
 combined4
-# A tibble: 566 x 13
-# Groups:   Yr [2]
-#     Yr Julian2   Hr2 pest_dif site       Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y   
-#   <dbl>   <dbl> <dbl>    <dbl> <chr>      <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
-# 1  2019     142     8        2 mikewoolf1 May       143     2     53.9    52.7    55     89.3 May   
-# 2  2019     143    17        2 mikewoolf1 May       144    11     75.5    72.3    77.2   54.6 May   
-# 3  2019     144    11       56 mikewoolf1 May       145     5     54.4    54.1    55     96.2 May  
+# A tibble: 714 x 13
+# Groups:   Yr, Julian2 [242]
+# Yr Julian2 site         Hr2 pest_dif Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
+#   <dbl>   <dbl> <chr>      <dbl>    <dbl> <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
+# 1  2019     142 mikewoolf1     8        2 May       143     2     53.9    52.7    55     89.3 May   
+# 2  2019     143 mikewoolf1    17        2 May       144    11     75.5    72.3    77.2   54.6 May   
+# 3  2019     144 mikewoolf1    11       56 May       145     5     54.4    54.1    55     96.2 May 
 
 combined4[!complete.cases(combined4), ]
-# A tibble: 14 x 13
-# Groups:   Yr [2]
-#     Yr Julian2   Hr2 pest_dif site  Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
-#    <dbl>   <dbl> <dbl>    <dbl> <chr> <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
-# 1  2019     155    11       NA NA    NA         NA    NA       NA      NA      NA     NA NA    
-# 2  2019     283     8       NA NA    NA         NA    NA       NA      NA      NA     NA NA    
-# 3  2019     289     4       NA NA    NA         NA    NA       NA      NA      NA     NA NA 
+# A tibble: 30 x 13
+# Groups:   Yr, Julian2 [29]
+# Yr Julian2 site          Hr2 pest_dif Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
+#   <dbl>   <dbl> <chr>       <dbl>    <dbl> <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
+# 1  2019     184 mikewoolf1     10       NA NA         NA    NA       NA      NA      NA     NA NA    
+# 2  2019     233 UCKearney      10       NA NA         NA    NA       NA      NA      NA     NA NA    
+# 3  2019     234 Perez          10       NA NA         NA    NA       NA      NA      NA     NA NA    
+# 4  2019     235 usda           10       NA NA         NA    NA       NA      NA      NA     NA NA 
 
-#-- In 14 cases the algorithm gives a median value for which there was no 
-#-- count in the input data set. This is out of 566 observations--acceptable
+#-- In 30 cases the algorithm gives a median value for which there was no 
+#-- count in the input data set. This is out of 714 observations--acceptable
 #-- loss
 
 combined4 <- combined4[complete.cases(combined4), ]
@@ -168,8 +170,8 @@ p1 <- ggplot(combined4, aes(x = degf_avg, y = Hr2)) +
   geom_point() +
   facet_wrap(vars(Mnth.x), ncol = 3, nrow = 4) +
   theme_bw() +
-  xlab("Median capture time (Hours after sunset)") +
-  ylab("Degrees F at time of median capture") +
+  xlab("Degrees F at time of median capture") +
+  ylab("Median capture time (Hours after sunset)") +
   theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 8),
         axis.title.x = element_text(color = "black", size = 10),
@@ -203,14 +205,16 @@ Oct <- combined4[combined4$Mnth.x == "Oct", ]
 
 ### Correlatons for Apr
 cor.test(Apr$degf_avg,Apr$Hr2, method = "spearman")
-#      Spearman's rank correlation rho
+# 
+# Spearman's rank correlation rho
 # 
 # data:  Apr$degf_avg and Apr$Hr2
-# S = 1866.1, p-value = 0.3774
+# S = 4732, p-value = 0.2426
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.1886394 
+# 0.2092195 
+nrow(Apr) # 33
 
 ### Correlatons for May
 cor.test(May$degf_avg,May$Hr2, method = "spearman")
@@ -219,24 +223,76 @@ cor.test(May$degf_avg,May$Hr2, method = "spearman")
 # Spearman's rank correlation rho
 # 
 # data:  May$degf_avg and May$Hr2
-# S = 2171.8, p-value = 0.08556
+# S = 2741.1, p-value = 0.08554
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.3370711 
+# 0.3248532 
+nrow(May) #29
 
 ### Correlatons for Jun
 cor.test(Jun$degf_avg,Jun$Hr2, method = "spearman")
-#      Spearman's rank correlation rho
-# 
+#
 # Spearman's rank correlation rho
 # 
 # data:  Jun$degf_avg and Jun$Hr2
-# S = 14105, p-value = 0.2144
+# S = 19879, p-value = 0.07757
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.1844945 
+# 0.2422598 
+nrow(Jun) #54
 
+### Correlatons for Jul
+cor.test(Jul$degf_avg,Jul$Hr2, method = "spearman")
+# 
+# Spearman's rank correlation rho
+# 
+# data:  Jul$degf_avg and Jul$Hr2
+# S = 681819, p-value = 0.4771
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#         rho 
+# -0.05715582 
+nrow(Jul) #157
+
+### Correlatons for Aug
+cor.test(Aug$degf_avg,Aug$Hr2, method = "spearman")
+# 
+# Spearman's rank correlation rho
+# 
+# data:  Aug$degf_avg and Aug$Hr2
+# S = 2140442, p-value = 0.4672
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#        rho 
+# 0.04735413  
+nrow(Aug) #238
+
+### Correlatons for Sep
+cor.test(Sep$degf_avg,Sep$Hr2, method = "spearman")
+# 
+# Spearman's rank correlation rho
+# 
+# data:  Sep$degf_avg and Sep$Hr2
+# S = 431802, p-value = 0.07148
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#       rho 
+# 0.1501308 
+nrow(Sep) #145
+
+### Correlatons for Oct
+cor.test(Oct$degf_avg,Oct$Hr2, method = "spearman")
+# 
+# Spearman's rank correlation rho
+# 
+# data:  Oct$degf_avg and Oct$Hr2
+# S = 3098.3, p-value = 0.4398
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#       rho 
+# 0.1520793 
+nrow(Oct) #28
 
 
