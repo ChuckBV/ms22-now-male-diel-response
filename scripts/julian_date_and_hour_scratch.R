@@ -2,7 +2,9 @@
 
 library(tidyverse)
 
-# Create a fake data set
+### Create a fake data set. Note that, for brevity, this only examines the
+### first 7 and last 6 hours of the day
+
 hr <- c(seq(0,7),seq(18,23))
 hr
 # [1]  0  1  2  3  4  5  6  7 18 19 20 21 22 23
@@ -47,3 +49,27 @@ df2
 # 12  152  5   151  11
 # 13  152  6   151  12
 # 14  152  7   151  13
+
+# Used a slightly different definition in script11--try again
+df3 <- df1 %>% 
+  mutate(hr2 = ifelse(hr >= 18, hr - 18, hr + 6),
+         jday2 = ifelse(hr >= 18, jday, jday - 1)) %>% 
+  arrange(jday,hr)
+df3
+# jday hr hr2 jday2
+# 1   151  0   6   150
+# 2   151  1   7   150
+# 3   151  2   8   150
+# 4   151  3   9   150
+# 5   151  4  10   150
+# 6   151  5  11   150
+# 7   151  6  12   150
+# 8   151  7  13   150
+# 9   151 18   0   151
+# 10  151 19   1   151
+# 11  151 20   2   151
+# 12  151 21   3   151
+# 13  151 22   4   151
+# 14  151 23   5   151
+
+#-- Gets the job done

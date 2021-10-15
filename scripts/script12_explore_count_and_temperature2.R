@@ -24,7 +24,6 @@
 
 library(tidyverse)
 library(lubridate)
-#library(timechange)
 
 #-- 1. (Heading to be determined) --------
 
@@ -37,149 +36,140 @@ combined
 # 2        1 UCKearney  2019 Jul       191     4     61.2    60.3    62.2   83.6 Jul   
 # 3        1 UCKearney  2019 Jul       194     4     64.2    63.9    65.1   93.2 Jul 
 
-#####################################################################
-### Reduce to night observations and only the first observation (hour)
-
-combined3 <- combined %>% 
-  filter(Hr <= 7 | Hr >= 18) %>%       # only during dark
-  group_by(Yr,site,Mnth.x,Julian) %>%  # <=1 obs per site per night
-  summarise(hr_obs1 = min(Hr),         # first obs (except...)
-            degf = mean(degf_avg))     # temp during first obs
-
-combined3
-# A tibble: 556 x 6
-# Groups:   Yr, site, Mnth.x [52]
-#       Yr site       Mnth.x Julian hr_obs1  degf
-#   <dbl> <chr>      <chr>   <dbl>   <dbl> <dbl>
-# 1  2019 mikewoolf1 Aug       213       5  59.2
-# 2  2019 mikewoolf1 Aug       215       5  62.7
-
-hrs <- sort(unique(combined3$hr_obs1))
-hrs
-# [1]  0  1  2  3  4  5  6  7 18 19 20 21 22 23
-
-#-- all possible hours represented
-
-## Temp of first obs vs. Julian day. This works without any further processing
-## because hour is not a factor
-
-p1 <- ggplot(combined3, aes(x = Julian, y = degf)) +
-  geom_point() +
-  theme_bw() +
-  xlab("Julian Day") +
-  ylab("Temperature (F) at time of first capture") +
-  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
-        axis.text.y = element_text(color = "black", size = 8),
-        axis.title.x = element_text(color = "black", size = 10),
-        axis.title.y = element_text(color = "black", size = 10),
-        legend.title = element_text(color = "black", size = 8),
-        legend.text = element_text(color = "black", size = 8))
-
-p1 
-
-ggsave(filename = "fig_temperature_of_first_captr_by_julian.jpg", 
-       plot = p1, device = "jpg", path = "./results", 
-       dpi = 300, width = 5.83, height = 3.9, units = "in")  
+combined[!complete.cases(combined), ]
+#-- Tibble of 0, all complete cases
 
 ## Get Julian date reference points for months
 
 # Make Mnth.x into a factor to conserve order
-combined3[combined3$Mnth.x == "Mar", ] # 2 observations, drop them
-combined3 <- combined3[combined3$Mnth.x != "Mar", ]
+combined[combined$Mnth.x == "Mar", ] # 2 observations, drop them
+combined <- combined[combined$Mnth.x != "Mar", ]
 
-combined3$Mnth.x <- factor(combined3$Mnth.x, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
+combined$Mnth.x <- factor(combined$Mnth.x, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
+combined
+levels(combined$Mnth.x)
+
+### Algorithm to shift time and date. This is how we did the time shift in
+### script11. See also "julian_date_and_hour_scratch.R". Note that numbering
+### of "combined" data sets in this script is different from script11--don't
+### switch back and forth.
+
+### Anything after midnight and before sundown (6PM) has the Julian date from 
+### the previous day
+
+combined2 <- combined %>% 
+  dplyr::mutate(Hr2 = ifelse(Hr >= 18, Hr - 18, Hr + 6),
+                Julian2 = ifelse(Hr >= 18, Julian, Julian - 1)) %>% 
+  dplyr::arrange(Julian,Hr)
+combined2
+
+combined2[!complete.cases(combined2), ]
+#-- Tibble of 0, all complete cases
+
+### Get median observation for Julian2. In order to be certain that median
+### functions correctly, go from frequency table form (moths per hour of)
+### observations) to case format (one observation for each moth)
+
+combined3 <- vcdExtra::expand.dft(combined2, freq = "pest_dif")
+#-- goes from 1426 to 3495 observations
+
+combined3[!complete.cases(combined3), ]
+#-- Tibble of 0, all complete cases
+
+combined3 <- combined3 %>% 
+  group_by(Yr,Julian2) %>% 
+  dplyr::summarise(Hr2 = median(Hr2))
 combined3
-levels(combined3$Mnth.x)
+# A tibble: 242 x 3
+# Groups:   Yr [2]
+#     Yr Julian2   Hr2
+#   <int>   <int> <dbl>
+# 1  2019     142   8  
+# 2  2019     143  17  
+# 3  2019     144  11 
 
-sort(unique(combined3$Julian))
-# 102 to 131, about 25 days missing
+combined3[!complete.cases(combined3), ]
+#-- Tibble of 0, all complete cases
+
+# Lost temperature data in summary step above, so merge to source data set
+# to get that back
+combined4 <- left_join(combined3,combined2)
+combined4
+# A tibble: 551 x 13
+# Groups:   Yr [2]
+#      Yr Julian2   Hr2 pest_dif site       Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
+#   <dbl>   <dbl> <dbl>    <dbl> <chr>      <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
+# 1  2019     142   8          2 mikewoolf1 May       143     2     53.9    52.7    55     89.3 May   
+# 2  2019     143  17          2 mikewoolf1 May       144    11     75.5    72.3    77.2   54.6 May   
+# 3  2019     144  11         56 mikewoolf1 May       145     5     54.4    54.1    55     96.2 May   
+# 4  2019     147   8         35 mikewoolf1 May       148     2     54.3    53.8    54.9   82.8 May   
+# 5  2019     148  11         27 mikewoolf1 May       149     5     58.0    57.2    58.6   94.2 May   
+# 6  2019     149  11         22 mikewoolf1 May       150     5     59.4    59.2    59.9   89.3 May   
+# 7  2019     150  11          2 mikewoolf1 May       151     5     58.4    57.7    59.2   84.7 May   
+# 8  2019     151  11          7 mikewoolf1 Jun       152     5     59.1    58.6    60.3   84.1 Jun   
+# 9  2019     152  11          1 UCKearney  Jun       153     5     60.2    59.7    61.2   89.8 Jun   
+# 10  2019     154  10.5       NA NA         NA         NA    NA     NA      NA      NA     NA   NA 
+
+#-- Some NAs because in some cases the algorith for median gives a value of x.5
+
+x <- combined3$Hr2[combined3$Hr2%%1 != 0]
+x
+# [1] 10.5 10.5 10.5 10.5  9.5 10.5 10.5 10.5 10.5 10.5 10.5 11.5 10.5 11.5  8.5  1.5  3.5  4.5 12.5  1.5 10.5 11.5  5.5  1.5  5.5 10.5 10.5 13.5 11.5
+#-- Confirms the remark above
+length(x)
+# [1] 29
 
 combined3 %>% 
-  group_by(Mnth.x) %>% 
-  summarise(frst_Jul = min(Julian))
-# A tibble: 7 x 2
-# Mnth.x frst_Jul
-#   <fct>     <dbl>
-# 1 Apr         102
-# 2 May         122
-# 3 Jun         152
-# 4 Jul         182
-# 5 Aug         213
-# 6 Sep         244
-# 7 Oct         275
+  mutate(Hr3 = ifelse(Hr2%%1 != 0,Hr2 - 0.5,Hr2)) %>% 
+  filter(Hr3 != Hr2)
+# A tibble: 29 x 4
+# Groups:   Yr [2]
+#      Yr Julian2   Hr2   Hr3
+#   <int>   <int> <dbl> <dbl>
+# 1  2019     154  10.5    10
+# 2  2019     156  10.5    10
 
-#-- Rough idea of how month corresponds to Julian Day
+#-- Confirms proposed fix, no need for yet another variable
 
-
-# Algorithm to shift time and date
 combined3 <- combined3 %>% 
-  mutate(Julian2 = ifelse(hr_obs1 <= 7, Julian - 1, Julian),
-         hr2 = ifelse(hr_obs1 > 7, hr_obs1 - 18, hr_obs1 + 6))
+  mutate(Hr2 = ifelse(Hr2%%1 != 0,Hr2 - 0.5,Hr2))
 combined3
 
-########################################################
-### Vertical bar chart of first counts by time of night
+combined3[!complete.cases(combined3), ]
+#-- Tibble of 0, all complete cases
 
-x <- combined3 %>% 
-  group_by(hr2) %>% 
-  summarise(nObs = n())
+combined4 <- left_join(combined3,combined2)
+combined4
+# A tibble: 566 x 13
+# Groups:   Yr [2]
+#     Yr Julian2   Hr2 pest_dif site       Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y   
+#   <dbl>   <dbl> <dbl>    <dbl> <chr>      <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
+# 1  2019     142     8        2 mikewoolf1 May       143     2     53.9    52.7    55     89.3 May   
+# 2  2019     143    17        2 mikewoolf1 May       144    11     75.5    72.3    77.2   54.6 May   
+# 3  2019     144    11       56 mikewoolf1 May       145     5     54.4    54.1    55     96.2 May  
 
-p2 <- ggplot(x, aes(x = hr2, y = nObs)) +
-  geom_col() +
-  theme_bw() +
-  xlab("Hours after sundown") +
-  ylab("Observations of first capture") +
-  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
-        axis.text.y = element_text(color = "black", size = 8),
-        axis.title.x = element_text(color = "black", size = 10),
-        axis.title.y = element_text(color = "black", size = 10),
-        legend.title = element_text(color = "black", size = 8),
-        legend.text = element_text(color = "black", size = 8))
+combined4[!complete.cases(combined4), ]
+# A tibble: 14 x 13
+# Groups:   Yr [2]
+#     Yr Julian2   Hr2 pest_dif site  Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
+#    <dbl>   <dbl> <dbl>    <dbl> <chr> <fct>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
+# 1  2019     155    11       NA NA    NA         NA    NA       NA      NA      NA     NA NA    
+# 2  2019     283     8       NA NA    NA         NA    NA       NA      NA      NA     NA NA    
+# 3  2019     289     4       NA NA    NA         NA    NA       NA      NA      NA     NA NA 
 
-p2 
+#-- In 14 cases the algorithm gives a median value for which there was no 
+#-- count in the input data set. This is out of 566 observations--acceptable
+#-- loss
 
-ggsave(filename = "fig_vbar_captures_by_time_of_night.jpg", 
-       plot = p2, device = "jpg", path = "./results", 
-       dpi = 300, width = 5.83, height = 3.9, units = "in")  
+combined4 <- combined4[complete.cases(combined4), ]
 
-########################################################
-### Vertical bar chart of first counts by temperature
-
-combined3$deg <- as.integer(combined3$degf) 
-#  mutate(deg = integer(degf))
-combined3
-
-y <- combined3 %>% 
-  group_by(deg) %>% 
-  summarise(nObs = n())
-
-p3 <- ggplot(y, aes(x = deg, y = nObs)) +
-  geom_col() +
-  theme_bw() +
-  xlab("Degrees Farhenheit") +
-  ylab("Observations of first capture") +
-  theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
-        axis.text.y = element_text(color = "black", size = 8),
-        axis.title.x = element_text(color = "black", size = 10),
-        axis.title.y = element_text(color = "black", size = 10),
-        legend.title = element_text(color = "black", size = 8),
-        legend.text = element_text(color = "black", size = 8))
-
-p3
-
-ggsave(filename = "fig_vbar_first_captures_by_temperature.jpg", 
-       plot = p3, device = "jpg", path = "./results", 
-       dpi = 300, width = 5.83, height = 3.9, units = "in")  
-
-###########################################################
-### Does seasonality (photoperiod) affect relationship?
-
-p4 <-  ggplot(combined3, aes(x = degf, y = hr2)) +
+### Now plot and determine correlations
+p1 <- ggplot(combined4, aes(x = degf_avg, y = Hr2)) +
   geom_point() +
+  facet_wrap(vars(Mnth.x), ncol = 3, nrow = 4) +
   theme_bw() +
-  facet_grid(Mnth.x ~.) +
-  xlab("Degrees Fahrenheit") +
-  ylab("First capture (hour after sunset)") +
+  xlab("Median capture time (Hours after sunset)") +
+  ylab("Degrees F at time of median capture") +
   theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 8),
         axis.title.x = element_text(color = "black", size = 10),
@@ -187,13 +177,66 @@ p4 <-  ggplot(combined3, aes(x = degf, y = hr2)) +
         legend.title = element_text(color = "black", size = 8),
         legend.text = element_text(color = "black", size = 8))
 
-p4
+p1
 
-ggsave(filename = "first_cap_vs_temp_by_month.jpg", 
-       plot = p4, device = "jpg", path = "./results", 
-       dpi = 300, width = 5.83, height = 3.9, units = "in")  
+ggsave(filename = "Temp_v_time_med_capture_by_month.jpg", plot = p1, device = "jpg", path = "./results",
+       dpi = 300, width = 5.83, height = 5.83, units = "in")
+
+### Examine correlations (if any). The sophisticated way to do this would be
+### to use the tidyverse package purr to get subsets into a list and apply
+### correlation to each in list. Will use the simple method of subsetting into
+### 7 1-mont data sets and using the correlation function 7 times.
+
+# ?subset
+# Warning
+# This is a convenience function intended for use interactively. For programming 
+# it is better to use the standard subsetting functions like [, and in particular
+# the non-standard evaluation of argument subset can have unanticipated consequences.
+
+Apr <- combined4[combined4$Mnth.x == "Apr", ]
+May <- combined4[combined4$Mnth.x == "May", ]
+Jun <- combined4[combined4$Mnth.x == "Jun", ]
+Jul <- combined4[combined4$Mnth.x == "Jul", ]
+Aug <- combined4[combined4$Mnth.x == "Aug", ]
+Sep <- combined4[combined4$Mnth.x == "Sep", ]
+Oct <- combined4[combined4$Mnth.x == "Oct", ]
+
+### Correlatons for Apr
+cor.test(Apr$degf_avg,Apr$Hr2, method = "spearman")
+#      Spearman's rank correlation rho
+# 
+# data:  Apr$degf_avg and Apr$Hr2
+# S = 1866.1, p-value = 0.3774
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#       rho 
+# 0.1886394 
+
+### Correlatons for May
+cor.test(May$degf_avg,May$Hr2, method = "spearman")
+#      Spearman's rank correlation rho
+# 
+# Spearman's rank correlation rho
+# 
+# data:  May$degf_avg and May$Hr2
+# S = 2171.8, p-value = 0.08556
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#       rho 
+# 0.3370711 
+
+### Correlatons for Jun
+cor.test(Jun$degf_avg,Jun$Hr2, method = "spearman")
+#      Spearman's rank correlation rho
+# 
+# Spearman's rank correlation rho
+# 
+# data:  Jun$degf_avg and Jun$Hr2
+# S = 14105, p-value = 0.2144
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#       rho 
+# 0.1844945 
 
 
-###########################################################
-### Are there fewer captured overall on hot nights?
 
