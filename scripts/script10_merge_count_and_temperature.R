@@ -382,7 +382,7 @@ p1p3
 ggsave(filename = "Y19_counts_temps_daily_by_site.jpg", p1p3, path = "./results",
        width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
-### Output combined 2019 plots
+### Output combined 2020 plots
 
 p2p4 <- ggarrange(p2,p4, ncol = 2)
 p2p4
