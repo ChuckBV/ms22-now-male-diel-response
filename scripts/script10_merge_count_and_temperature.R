@@ -157,7 +157,7 @@ p1 <- ggplot(daily19b, aes(x = Date,y = orangeworm)) +
   theme_bw() +
   scale_x_date(breaks = as.Date(c("2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01"))) +
   xlab("") +
-  ylab("NOW per week") +
+  ylab("NOW per day") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
         axis.title.x = element_text(color = "black", size = 9),
@@ -218,7 +218,7 @@ p2 <- ggplot(daily20b, aes(x = Date,y = orangeworm)) +
   theme_bw() +
   scale_x_date(breaks = as.Date(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
     xlab("") +
-  ylab("NOW per week") +
+  ylab("NOW per day") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
         axis.title.x = element_text(color = "black", size = 9),
