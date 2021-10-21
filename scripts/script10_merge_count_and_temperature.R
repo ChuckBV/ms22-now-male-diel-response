@@ -15,12 +15,14 @@
 #    - p2p4: p2 and p4 side by side
 # Output file "combined" saved as...
 #   merged_count_and_temp_data.csv
+# 6. Explore high and low temps by month
 #
 #===========================================================================#
 
 library(tidyverse)
 library(lubridate)
 library(ggpubr)
+library(DescTools)
 
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
 
@@ -29,14 +31,14 @@ allsites19 <- read.csv("./data/allsites_y19_scrubbed.csv")
 allsites20 <- read.csv("./data//allsites_y20_scrubbed.csv")
 
 # Examine and fix discrepancy in site names in 2020 capture and temperature data
-unique(allsites20$site)
+#unique(allsites20$site)
 # [1] "mikewoolf1" "mikewoolf2" "mikewoolf3" "mikewoolf4" "mikewoolf5"
 
 #-- 2. Merge and 2019 and 2020 count data --------------------------
 
 # Modify for merge compatibility)
-head(allsites19)
-head(allsites20)
+#head(allsites19)
+#head(allsites20)
 
 # Drop counts of zero
 allsites19 <- allsites19 %>% 
@@ -487,3 +489,32 @@ write.csv(combined,"./data/merged_count_and_temp_data.csv",row.names = FALSE)
 combined19 <-combined %>% 
   filter(Yr == 2019) %>% 
   ggplot(aes(x = ))
+
+#-- 6. Explore high and low temps by month  ----------------------
+ 
+Hi_lo <- temps %>%
+  group_by(Mnth,Julian) %>%
+  summarise(Hi = max(degf_hi),
+            Lo = min(degf_lo))
+
+Desc(Hi ~ Mnth, data = Hi_lo)
+
+### Boxplots of high and low temperature by month
+ggplot(Hi_lo, aes(x = Mnth, y = Hi)) +
+         geom_boxplot()
+
+ggplot(Hi_lo, aes(x = Mnth, y = Lo)) +
+  geom_boxplot()
+
+### Bloxplots of temperautre by hour, facet_wrap month
+### Crude, but demonstrates that temperature continues to increase until 
+### the last hour of daylight
+
+x <- c("Mar","Apr","May","Jun","Jul","Aug","Sep","Oct")
+
+temps2 <- temps  %>%
+  filter(Mnth %in% x)
+
+ggplot(temps2, aes(x = Hr, y = degf_avg, group = Hr)) +
+  geom_boxplot() +
+  facet_wrap(vars(Mnth))
