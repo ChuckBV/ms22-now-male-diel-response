@@ -499,6 +499,9 @@ Hi_lo <- temps %>%
 
 Desc(Hi ~ Mnth, data = Hi_lo)
 
+Desc(Lo ~ Mnth, data = Hi_lo)
+
+
 ### Boxplots of high and low temperature by month
 ggplot(Hi_lo, aes(x = Mnth, y = Hi)) +
          geom_boxplot()
