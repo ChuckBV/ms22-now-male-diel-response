@@ -377,11 +377,11 @@ temps20$site[temps20$site == "mikewoolf4"] <- "West 4"
 temps20$site[temps20$site == "mikewoolf5"] <- "West 5"
 
 
-p4 <- ggplot(temps20, aes(x = datetime, y = degf_avg)) +
+p4 <- ggplot(temps20, aes(x = Date_time, y = degf_avg)) +
   geom_line() +
-  facet_grid(site ~ .) +
+  facet_grid(TrapCode ~ .) +
   theme_bw() +
-  scale_x_datetime(date_breaks = "1 month") +
+  scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +
   ylab("Temperature (degrees Fahrenheit)") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
