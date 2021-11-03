@@ -21,24 +21,40 @@
 
 library(tidyverse)
 library(lubridate)
+library(scales)
 library(ggpubr)
 library(DescTools)
 
+#---------------------------------------------------------------------------#
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
+#---------------------------------------------------------------------------#
 
-# Load original data files into memory
+### Load original data files into memory
+
 allsites19 <- read.csv("./data/allsites_y19_scrubbed.csv") 
 allsites20 <- read.csv("./data//allsites_y20_scrubbed.csv")
+
+### Provide a trap_code variable
+# upload
+trapcodes <- read.csv("./data/trapview_trap_codes.csv")
+# isolate by year
+trapcodes19 <- trapcodes[trapcodes$Year == 2019,2:3]
+trapcodes20 <- trapcodes[trapcodes$Year == 2020,2:3]
+# merge w present data
+allsites19 <- left_join(trapcodes19,allsites19)
+allsites20 <- left_join(trapcodes20,allsites20)
+
+
 
 # Examine and fix discrepancy in site names in 2020 capture and temperature data
 #unique(allsites20$site)
 # [1] "mikewoolf1" "mikewoolf2" "mikewoolf3" "mikewoolf4" "mikewoolf5"
 
-#-- 2. Merge and 2019 and 2020 count data --------------------------
+#---------------------------------------------------------------------------#
+#-- 2. Merge and 2019 and 2020 count data -----------------------------------
+#---------------------------------------------------------------------------#
 
-# Modify for merge compatibility)
-#head(allsites19)
-#head(allsites20)
+### Modify for merge compatibility)
 
 # Drop counts of zero
 allsites19 <- allsites19 %>% 
@@ -49,67 +65,77 @@ allsites20 <- allsites20 %>%
   filter(pest_dif > 0)
 #-- 681 observations
 
-# Combine 2019 and 2020
+### Combine 2019 and 2020
+
 counts_y19y20 <- rbind(allsites19,allsites20)
 
-# Set datetime format
+### Set datetime format
+
 counts_y19y20$datetime <- as.POSIXct(counts_y19y20$datetime)
 str(counts_y19y20)
 attr(counts_y19y20$datetime,"tzone")
 # ""
-#>>> Get system timezone attribute (takes daylight saving time into account)
+### Get system timezone attribute (takes daylight saving time into account)
+
 (x <- Sys.timezone())
 # [1] "America/Los_Angeles"
+
 lubridate::tz(counts_y19y20$datetime) <- x
+
 attr(counts_y19y20$datetime,"tzone")
 # [1] "America/Los_Angeles"
 
+### Final QC, expunge records not reviewed
+
 counts_y19y20 %>% 
   filter(reviewed == "No")
-#              datetime pest_nmbr pest_dif reviewed event  site
-# 1 2019-08-16 15:56:00         3        3       No  <NA> Perez
-# 2 2019-08-19 04:28:00         1        1       No  <NA> Perez
-# 3 2019-08-19 00:28:00         1        1       No  <NA>  usda
-# 4 2019-08-31 05:27:00         1        1       No  <NA>  usda
+#   site TrapCode            datetime pest_nmbr pest_dif reviewed event
+# 1 Perez    tv19a 2019-08-16 15:56:00         3        3       No  <NA>
+# 2 Perez    tv19a 2019-08-19 04:28:00         1        1       No  <NA>
+# 3  usda    tv19d 2019-08-19 00:28:00         1        1       No  <NA>
+# 4  usda    tv19d 2019-08-31 05:27:00         1        1       No  <NA>
 
 counts_y19y20 <- counts_y19y20 %>% 
   filter(reviewed != "No") %>% 
-  select(datetime,pest_dif,site) %>% 
+  select(datetime,pest_dif,site,TrapCode) %>% 
   mutate(Yr = year(datetime),
          Mnth = month(datetime, label = TRUE, abbr = TRUE),
          Julian = yday(datetime),
          Hr = hour(datetime))
 
 head(counts_y19y20,2)
-#              datetime pest_dif      site   Yr Mnth Julian Hr
-# 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13
-# 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1
+#               datetime pest_dif  site TrapCode   Yr Mnth Julian Hr
+# 1 2019-06-06 03:59:00        1 Perez    tv19a 2019  Jun    157  3
+# 2 2019-06-06 05:59:00        2 Perez    tv19a 2019  Jun    157  5
 
-
+#---------------------------------------------------------------------------#
 #-- 3. Seasonal overview using just the count data from both years  ---------
+#---------------------------------------------------------------------------#
 
-# temporary data frame allsites for current figure
+### temporary data frame allsites for current figure
+
 allsites <- counts_y19y20 %>% 
   mutate(wk = epiweek(datetime))
 allsites$caldate <- as.Date(allsites$datetime)
 head(allsites,2)
-#              datetime pest_dif      site   Yr Mnth Julian Hr wk
-# 1 2019-04-26 13:56:00        7 UCKearney 2019  Apr    116 13 17
-# 2 2019-05-02 01:57:00        1 UCKearney 2019  May    122  1 18
+#              datetime pest_dif  site TrapCode   Yr Mnth Julian Hr wk    caldate
+# 1 2019-06-06 03:59:00        1 Perez    tv19a 2019  Jun    157  3 23 2019-06-06
+# 2 2019-06-06 05:59:00        2 Perez    tv19a 2019  Jun    157  5 23 2019-06-06
 
-# sumarize counts by day
+### sumarize counts by day
+
 daily <- allsites %>% 
-  group_by(Yr,wk,caldate,site) %>% 
+  group_by(Yr,wk,caldate,TrapCode) %>% 
   summarize(orangeworm = sum(pest_dif)) %>% 
   rename(Date = caldate)
 daily
 # A tibble: 595 x 5
 # Groups:   Yr, wk, Date [275]
-#      Yr    wk Date       site      orangeworm
-#   <dbl> <dbl> <date>     <chr>          <int>
-# 1  2019    17 2019-04-24 usda              12
-# 2  2019    17 2019-04-25 usda               3
-# 3  2019    17 2019-04-26 UCKearney          7
+#      Yr    wk Date       TrapCode orangeworm
+#   <dbl> <dbl> <date>     <chr>         <int>
+# 1  2019    17 2019-04-24 tv19d            12
+# 2  2019    17 2019-04-25 tv19d             3
+# 3  2019    17 2019-04-26 tv19e             7
 
 ### Manipulate 2019 data file to improve graph appearance and to get 
 ### geom_line to return to 0 for dates with no captures
@@ -121,26 +147,35 @@ daily19 <- daily %>%
 (end19 <- max(daily19$Date))
 # [1] "2019-10-30"
 
-# Rename variable for prettier graph
-daily19$site[daily19$site == "MWoolf_east"] <- "MW East"
-daily19$site[daily19$site == "MWoolf_west"] <- "MW West"
-daily19$site[daily19$site == "usda"] <- "USDA"
+### NB The earliest temperature data we have from Trapview units in 2019
+### is May 16, and that is for the tv19e (MWoolf_east). Do not plot trap
+### data prior to May 16
+begin19 <- as.Date("2019-05-16")
 
-Site <- unique(daily19$site)
-#[1] "USDA"      "UCKearney" "MW West"   "Perez"     "MW East"  
 
-# rename site to Site
-daily19$Site <- daily19$site
-daily19$site <- NULL
+# Rename variable for prettier graph (now not used)
+# daily19$site[daily19$site == "MWoolf_east"] <- "MW East"
+# daily19$site[daily19$site == "MWoolf_west"] <- "MW West"
+# daily19$site[daily19$site == "usda"] <- "USDA"
+
+TrapCode <- unique(daily19$TrapCode)
+TrapCode
+# [1] "tv19d" "tv19e" "tv19b" "tv19a" "tv19c" 
+
+# rename site to Site (now not used)
+# daily19$Site <- daily19$site
+# daily19$site <- NULL
 #>>> indirect base method used because dplyr complained about ambiguity
 
 
 Dates19 <- (Date = seq(begin19,end19, by = "1 day"))
+length(Dates19)
+# 168
 
-Site <- rep(Site, each = 190)
+TrapCode <- rep(TrapCode, each = 168)
 Date <- rep(Dates19, times = 5)
 
-Dates <- data.frame(Site,Date)
+Dates <- data.frame(TrapCode,Date)
 head(Dates)
 head(daily19)
 daily19b <- left_join(Dates,daily19)
@@ -153,9 +188,7 @@ daily19b$orangeworm[is.na(daily19b$orangeworm)] <- 0
 
 p1 <- ggplot(daily19b, aes(x = Date,y = orangeworm)) +
   geom_line() +
-  facet_grid(Site ~ .) +
-  # any width over 3.0 gives a warning about non-overlapping x intervals
-  # I think it looks better with width = 5.0
+  facet_grid(TrapCode ~ .) +
   theme_bw() +
   scale_x_date(breaks = as.Date(c("2019-05-01","2019-06-01","2019-07-01","2019-08-01","2019-09-01","2019-10-01","2019-11-01"))) +
   xlab("") +
@@ -172,8 +205,8 @@ p1
 ggsave(filename = "Y19_trapview_daily_by_site.jpg", p1, path = "./results",
        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
-### Get daily counts graph for 2020
-
+### Get plot for 2020 count data to match the one for 2019 
+### count data
 daily20 <- daily %>% 
   filter(Yr == 2020)
 (begin20 <- min(daily20$Date))
@@ -181,27 +214,28 @@ daily20 <- daily %>%
 (end20 <- max(daily20$Date))
 # [1] "2019-09-22"
 
-# Rename variable for prettier graph
-daily20$site[daily20$site == "mikewoolf1"] <- "West 1"
-daily20$site[daily20$site == "mikewoolf2"] <- "West 2"
-daily20$site[daily20$site == "mikewoolf3"] <- "West 3"
-daily20$site[daily20$site == "mikewoolf4"] <- "West 4"
-daily20$site[daily20$site == "mikewoolf5"] <- "West 5"
+# Rename variable for prettier graph (not not used)
+# daily20$site[daily20$site == "mikewoolf1"] <- "West 1"
+# daily20$site[daily20$site == "mikewoolf2"] <- "West 2"
+# daily20$site[daily20$site == "mikewoolf3"] <- "West 3"
+# daily20$site[daily20$site == "mikewoolf4"] <- "West 4"
+# daily20$site[daily20$site == "mikewoolf5"] <- "West 5"
 
-(Site <- unique(daily20$site))
-#[1] "West 4" "West 2" "West 1" "West 3" "West 5"
+TrapCode <- unique(daily20$TrapCode)
+TrapCode
+# [1] "tv20d" "tv20b" "tv20a" "tv20c" "tv20e"
 
-# rename site to Site
-daily20$Site <- daily20$site
-daily20$site <- NULL
+# rename site to Site (now not used)
+# daily20$Site <- daily20$site
+# daily20$site <- NULL
 
 Dates20 <- (Date = seq(begin20,end20, by = "1 day"))
 # length = 198
 
-Site <- rep(Site, each = 198)
+TrapCode <- rep(TrapCode, each = 198)
 Date <- rep(Dates20, times = 5)
 
-Dates20 <- data.frame(Site,Date)
+Dates20 <- data.frame(TrapCode,Date)
 head(Dates20)
 head(daily20)
 daily20b <- left_join(Dates20,daily20)
@@ -214,9 +248,7 @@ daily20b$orangeworm[is.na(daily20b$orangeworm)] <- 0
 
 p2 <- ggplot(daily20b, aes(x = Date,y = orangeworm)) +
   geom_line( ) +
-  facet_grid(Site ~ .) +
-  # any width over 3.0 gives a warning about non-overlapping x intervals
-  # I think it looks better with width = 5.0
+  facet_grid(TrapCode ~ .) +
   theme_bw() +
   scale_x_date(breaks = as.Date(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
     xlab("") +
@@ -233,16 +265,26 @@ p2
 ggsave(filename = "Y20_trapview_wkly_by_site.jpg", p2, path = "./results",
        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
-
+#---------------------------------------------------------------------------#
 #-- 4. Merge 2019 and 2020 temperature data ---------------------------------
+#---------------------------------------------------------------------------#
 
 alltemps19 <- readr::read_csv("./data/trapview_temps_degf_y19.csv")
 alltemps20 <- readr::read_csv("./data/trapview_temps_degf_y20.csv")
 
-# Examine and fix discrepancy in site names in 2020 capture and temperature data
-unique(allsites20$site)
-# [1] "mikewoolf1" "mikewoolf2" "mikewoolf3" "mikewoolf4" "mikewoolf5"
-unique(alltemps20$site)
+### Merge TrapCode into 2020 data
+
+unique(alltemps19$site)
+# [1] "UCKearney"   "usda"        "Perez"       "MWoolf_west" "MWoolf_east"
+
+alltemps19 <- left_join(trapcodes19,alltemps19) # parallel with line 44
+head(alltemps19,2)
+#    site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
+# 1 Perez    tv19a 2019-06-04 16:00:00     88.7    86.2    90.5  59.84
+# 2 Perez    tv19a 2019-06-04 17:00:00     84.0    82.4    85.6  69.78
+
+
+unique(alltemps20$site) #17,580 obs
 # [1] "MWT1" "MWT2" "MWT3" "MWT4" "MWT5"
 
 alltemps20$site[alltemps20$site == "MWT1"] <- "mikewoolf1"
@@ -251,44 +293,23 @@ alltemps20$site[alltemps20$site == "MWT3"] <- "mikewoolf3"
 alltemps20$site[alltemps20$site == "MWT4"] <- "mikewoolf4"
 alltemps20$site[alltemps20$site == "MWT5"] <- "mikewoolf5"
 
-# Modify for merge compatibility)
-alltemps19 <- alltemps19 %>% 
-  dplyr::rename(datetime = Date_time)
-alltemps20 <- alltemps20 %>% 
-  dplyr::rename(datetime = Date_time)
+alltemps20 <- left_join(trapcodes20,alltemps20) # parallel with line 44
+head(alltemps20,2)
+#         site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
+# 1 mikewoolf1    tv20a 2020-04-22 02:00:00    51.50    50.2    52.5  90.27
+# 2 mikewoolf1    tv20a 2020-04-22 03:00:00    49.53    48.9    49.8  93.83
+
+# Modify for merge compatibility (now not used)
+# alltemps19 <- alltemps19 %>% 
+#   dplyr::rename(datetime = Date_time)
+# alltemps20 <- alltemps20 %>% 
+#   dplyr::rename(datetime = Date_time)
 
 ### Make variables in alltemps19 and alltemps20 compatible with each
 ### other and with the counts data set
 
-# Change MWoolf_west site name for consistency w 2020
-alltemps19$site[alltemps19$site == "MWoolf_west"] <- "mikewoolf1"
-alltemps19
-# A tibble: 18,969 x 6
-# site      datetime            degf_avg degf_lo degf_hi rh_avg
-#   <chr>     <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
-# 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
-# 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
-# 3 UCKearney 2019-05-16 19:00:00     55.0    53.8    56.8   90.4
-
-# reorder consist w 2019
-alltemps20 <- alltemps20[,c(6,1:5)] 
-
-alltemps20$site[alltemps20$site == "MWT1"] <- "mikewoolf1"
-alltemps20$site[alltemps20$site == "MWT2"] <- "mikewoolf2"
-alltemps20$site[alltemps20$site == "MWT3"] <- "mikewoolf3"
-alltemps20$site[alltemps20$site == "MWT4"] <- "mikewoolf4"
-alltemps20$site[alltemps20$site == "MWT5"] <- "mikewoolf5"
-
-unique(alltemps19$site)
-# [1] [1] "UCKearney"   "usda"        "Perez"       "mikewoolf1"  "MWoolf_east"
-
-unique(alltemps20$site)
-# [1] "mikewoolf1" "mikewoolf2" "mikewoolf3" "mikewoolf4" "mikewoolf5"
-
-# Also change MWoolf_west in the counts data set
-counts_y19y20$site[counts_y19y20$site == "MWoolf_west"]  <- "mikewoolf1"
-unique(counts_y19y20$site)
-# [1] "UCKearney"   "MWoolf_east" "mikewoolf1"  "Perez"       "usda"        "mikewoolf2"  "mikewoolf3"  "mikewoolf4"  "mikewoolf5"  
+unique(counts_y19y20$TrapCode)
+# [1] "tv19a" "tv19b" "tv19c" "tv19d" "tv19e" "tv20a" "tv20b" "tv20c" "tv20d" "tv20e" 
 
 # combine the temperature data sets
 temps <- rbind(alltemps19,alltemps20)
@@ -308,28 +329,27 @@ temps <- temps %>%
          Mnth = month(datetime, label = TRUE, abbr = TRUE),
          Julian = yday(datetime),
          Hr = hour(datetime))
-temps
-# A tibble: 36,549 x 10
-#   site      datetime            degf_avg degf_lo degf_hi rh_avg    Yr Mnth  Julian    Hr
-#   <chr>     <dttm>                 <dbl>   <dbl>   <dbl>  <dbl> <dbl> <ord>  <dbl> <int>
-# 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0  2019 May      136    17
-# 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7  2019 May      136    18
+head(temps,3)
+#      site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
+# 1   Perez    tv19a 2019-06-04 16:00:00    88.70    86.2    90.5  59.84
+# 2   Perez    tv19a 2019-06-04 17:00:00    84.00    82.4    85.6  69.78
+# 3   Perez    tv19a 2019-06-04 18:00:00    80.67    79.0    82.2  74.41
 
-# Temperatures plot for 2019
+
+### Temperatures plot for 2019
 temps19 <- temps %>% 
-  filter(Yr == 2019)
+  filter(year(Date_time) == 2019)
+str(temps19)
 
-# Rename variable for prettier graph
-temps19$site[temps19$site == "mikewoolf1"] <- "MW West"
-temps19$site[temps19$site == "MWoolf_east"] <- "MW East"
-temps19$site[temps19$site == "usda"] <- "USDA"
+### 
 
 
-p3 <- ggplot(temps19, aes(x = datetime, y = degf_avg)) +
+p3 <- ggplot(temps19, aes(x = Date_time, y = degf_avg)) +
   geom_line() +
-  facet_grid(site ~ .) +
+  facet_grid(TrapCode ~ .) +
   theme_bw() +
-  scale_x_datetime(date_breaks = "1 month") +
+  #scale_x_datetime(breaks = as.Date.POSIXct(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
+  scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +
   ylab("Temperature (degrees Fahrenheit)") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
@@ -347,7 +367,7 @@ ggsave(filename = "Y19_trapview_temps_daily_by_site.jpg", p3, path = "./results"
 
 # Temperatures plot for 2020
 temps20 <- temps %>% 
-  filter(Yr == 2020)
+  filter(year(Date_time) == 2020)
 
 # Rename variable for prettier graph
 temps20$site[temps20$site == "mikewoolf1"] <- "West 1"
