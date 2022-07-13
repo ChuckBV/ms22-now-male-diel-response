@@ -4,26 +4,68 @@ Repository: github.org/chuckbv/ms-hengst-thesis-chap2-trapview
 
 Simplified and cleaned version of Trapview data and analysis
 
-## Overview
+## Interpretive Summary
 
-Five Trapview camera traps baited with pheromone lures were run over a 
-two-year period to examine night-to-night and hourly variation in trap 
-capture. The traps took photos once every 0.5 hours fromsunset to sunrise.
-In 2019 the five traps were in five different locations. In 2020 the traps 
-were in one location where heavier abundance was found the previous year.
+ 1. The impact of environment and the biological clock on the timing of sexual
+ activity of pest moths like the navel orangeworm is important for 
+ optimization of pheromone mating disruption for their control.
+ 2. Remote automated camera traps offer a more efficient way to monitor such 
+ pests for treatment decisions, and can also provide a research tool to 
+ improve understanding of biology of these pests.
+ 3. Two years of camera trap data corroborated that the peak time of arrival 
+ of males to a synthetic pheromone source was influenced by seasonal factors,
+ but also revealed more variability and less direct effect of temperature 
+ compared to earlier studies primarily examining females.
+ 4. Improve understanding of photoperiodic responses of males will improve
+ understanding of monitoring data and optimization of mating disruption. 
 
-## Data
+## Abstract
 
-"allsites_y19.csv" and "allsites_y20.csv" are equivalevent files of trap 
-events for the two years. The _y19 and _y20 temperature files are temperature 
-data reported by the traps over the same period.
+Navel orangeworm, Amyelois transitella (Walker), is the primary insect pest 
+of walnuts, pistachio, and almonds in California. Sex pheromone based mating 
+disruption has recently been commercialized for this pest in the form of timed 
+aerosol dispensers. Dispenser efficiency may be increased by timing releases 
+with the active mating period of navel orangeworm. Past work found that the 
+peak time of sexual activity for navel orangeworm females is 2 hours before 
+sunrise when temperatures are above 18° C. Inference of male responsiveness 
+from data collected in that study was limited by the necessity of using 
+laboratory-reared females as a source of sex pheromone emission to attract 
+males and the inherent limitations of human observers for nocturnal events. 
+Here we used camera traps baited with artificial pheromone to observe male 
+navel orangeworm mating response in the field over two field seasons. Male 
+response to synthetic pheromone exhibited diel patterns broadly similar to 
+females, i.e., they were active for a brief period of 2 to 3 hours before dawn 
+under summer conditions and began responding to pheromone earlier and over 
+a longer period of time during spring and fall. Contrary to the previous 
+findings with females, some males were captured at all hours of the day and 
+night, and there was no evidence of short-term change of pheromone 
+responsiveness in response to temperature. Environmental effects on the 
+response of navel orangeworm males to an artificial pheromone source differs 
+in important ways from the environmental effects on female release of sex 
+pheromone.
+
+## ./data
+
+***allsites_y19.csv***" and "***allsites_y20.csv***" are equivalent files of trap 
+events for the two years. The ***trapview_temps_degf_y19.csv*** and 
+***trapview_temps_degf_y19.csv*** temperature files are temperature data 
+reported by the traps over the same period.
+
+The two ***_scrubbed.csv*** provide count data after using REGEX to removed 
+erroneous counts. 
 
 ## Scripts
- - **script0_head_data_files.R** Infile to load 4 relevant csv files into 
- dataframes in Global Environment, head these files (43 lines)
+ - **script10_merge_count_and_temperature.R** Infile to load 4 relevant csv 
+ files into dataframes in Global Environment, head these files. Creates
+ individual temperature and count profiles for 2019 and 2020, and uses
+ ggpubr to combine these into composite graphics ***Fig2.jpg*** and 
+ ***Fig3.jpg***
  - **script1_y19_plot_weeks_hour.R** Creates a cool figure showing flights 
  for 2019
  - **script2_y19_temperature_data.R** Plot temperature and RH readings daily 
  at 3AM (once per day so the chart is not too noisy)
+ - 
+ 
+## Output files
  - 
  

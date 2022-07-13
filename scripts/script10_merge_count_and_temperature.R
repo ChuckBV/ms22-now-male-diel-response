@@ -165,7 +165,7 @@ TrapCode
 # rename site to Site (now not used)
 # daily19$Site <- daily19$site
 # daily19$site <- NULL
-#>>> indirect base method used because dplyr complained about ambiguity
+# indirect base method used because dplyr complained about ambiguity
 
 
 Dates19 <- (Date = seq(begin19,end19, by = "1 day"))
