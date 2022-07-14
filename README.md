@@ -67,5 +67,10 @@ erroneous counts.
  - 
  
 ## Output files
- - 
+ - Fig2.jpg
+ - Fig3.jpg
+ - Fig4.jpg
+ - Fig5.jpg
+ 
+ 
  
