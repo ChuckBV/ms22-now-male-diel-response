@@ -61,9 +61,7 @@ erroneous counts.
  ggpubr to combine these into composite graphics ***Fig2.jpg*** and 
  ***Fig3.jpg***
  - **script11_explore_count_and_temperature.R** Creates ***Fig4.jpg***
- - **script2_y19_temperature_data.R** Plot temperature and RH readings daily 
- at 3AM (once per day so the chart is not too noisy)
- - 
+ - **script12_explore_count_and_temperature2.R** Creates ***Fig5.jpg*** 
  
 ## Output files
  - Fig2.jpg -- Daily Counts and hourly temperatures in 2019
