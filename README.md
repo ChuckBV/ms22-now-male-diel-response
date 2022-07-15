@@ -60,7 +60,7 @@ erroneous counts.
  individual temperature and count profiles for 2019 and 2020, and uses
  ggpubr to combine these into composite graphics ***Fig2.jpg*** and 
  ***Fig3.jpg***
- - **script11_explore_count_and_temperature.R** Creates Fig5.jpg
+ - **script11_explore_count_and_temperature.R** Creates ***Fig4.jpg***
  - **script2_y19_temperature_data.R** Plot temperature and RH readings daily 
  at 3AM (once per day so the chart is not too noisy)
  - 
