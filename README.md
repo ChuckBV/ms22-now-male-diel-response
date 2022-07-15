@@ -67,10 +67,10 @@ erroneous counts.
  - 
  
 ## Output files
- - Fig2.jpg
- - Fig3.jpg
- - Fig4.jpg
+ - Fig2.jpg - Daily count and temperature profile, 2019
+ - Fig3.jpg - Daily count and temperature profile, 2020
+ - Fig4.jpg - B
  - Fig5.jpg
  
- 
+
  
