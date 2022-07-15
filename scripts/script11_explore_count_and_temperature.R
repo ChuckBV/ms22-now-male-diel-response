@@ -184,14 +184,13 @@ p0 <- ggplot(combined2, aes(x = Mnth.x, y = Hour)) +
 
 p0
 
-ggsave(filename = "boxplot_hour_vs_month.jpg", plot = p0, device = "jpg", path = "./results",
-       dpi = 300, width = 5.83, height = 4.5, units = "in")
-
+# ggsave(filename = "boxplot_hour_vs_month.jpg", plot = p0, device = "jpg", path = "./results",
+#        dpi = 300, width = 5.83, height = 4.5, units = "in")
 
 
 combined2 %>% 
   group_by(Mnth.x,offhrs) %>% 
-  summarise(nObs = n()) 
+  summarize(nObs = n()) 
 # Mnth.x offhrs  nObs
 # <fct>  <chr>  <int>
 #  1 Mar    No         2
@@ -218,7 +217,7 @@ combined2 %>%
 x <- combined2 %>% 
   group_by(Mnth.x,offhrs) %>%
   filter(Mnth.x != "Mar") %>% 
-  summarise(nObs = n()) 
+  summarize(nObs = n()) 
 x # as expected
 
 x$Mnth.x <- droplevels(x$Mnth.x)
@@ -262,7 +261,7 @@ y <- y %>%
   # now verify
 test <- y %>% 
   group_by(Hr,Hour) %>% 
-  summarise(nObs = n())
+  summarize(nObs = n())
 
 
 
@@ -281,8 +280,8 @@ p1 <- ggplot(data = y, aes(x = Hour, y = counts)) +
 
 p1
 
-ggsave(filename = "Fig_cap_v_time_of_day.jpg", plot = p1, device = "jpg", path = "./results",
-       dpi = 300, width = 5.83, height = 9.4, units = "in")
+# ggsave(filename = "Fig_cap_v_time_of_day.jpg", plot = p1, device = "jpg", path = "./results",
+#        dpi = 300, width = 5.83, height = 9.4, units = "in")
 
 # ggsave(filename = "Fig_cap_v_time_of_day.eps", plot = p1, device = "eps", path = "./results", 
 #        dpi = 300, width = 5.83, height = 9.4, units = "in")
@@ -311,12 +310,16 @@ combined5 <- left_join(combined5,combined4)
 
 combined5 <- combined5[complete.cases(combined5), ]
 
-p2 <- ggplot(combined5, aes(x = Hour, y = degf_avg)) +
+# Get degrees Celcius again
+combined5 <- combined5 %>% 
+  mutate(degc_avg = (degf_avg-32)/1.8)
+
+p2 <- ggplot(combined5, aes(x = Hour, y = degc_avg)) +
   geom_point() +
   facet_wrap(vars(Mnth.x), ncol = 3, nrow = 4) +
   theme_bw() +
   xlab("Median capture time (Hours after sunset)") +
-  ylab("Degrees F at time of median capture") +
+  ylab("Degrees C at time of median capture") +
   theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 8),
         axis.title.x = element_text(color = "black", size = 10),
@@ -326,7 +329,7 @@ p2 <- ggplot(combined5, aes(x = Hour, y = degf_avg)) +
 
 p2
 
-ggsave(filename = "Temp_v_time_med_capture_by_month.jpg", plot = p2, device = "jpg", path = "./results",
+ggsave(filename = "Fig5.jpg", plot = p2, device = "jpg", path = "./results",
        dpi = 300, width = 5.83, height = 5.83, units = "in")
 
 #-- Need to use purr or similar to examine correlation by month
@@ -351,9 +354,9 @@ p2 <- ggplot(data = daylt) +
 
 p2
 
-ggsave(filename = "fig_daytime_fliers_by_month.jpg", 
-      plot = p2, device = "jpg", path = "./results", 
-      dpi = 300, width = 5.83, height = 3.9, units = "in")  
+# ggsave(filename = "fig_daytime_fliers_by_month.jpg", 
+#       plot = p2, device = "jpg", path = "./results", 
+#       dpi = 300, width = 5.83, height = 3.9, units = "in")  
 
 
 ggplot(daylt, aes(x = degf_avg, y = Hr)) +
@@ -375,9 +378,9 @@ p3 <- ggplot(daylt, aes(x = Hr, y = degf_avg)) +
 
 p3
 
-ggsave(filename = "fig_daytime_fliers_by_hour_and_temp.jpg", 
-       plot = p3, device = "jpg", path = "./results", 
-       dpi = 300, width = 5.83, height = 3.9, units = "in")  
+# ggsave(filename = "fig_daytime_fliers_by_hour_and_temp.jpg", 
+#        plot = p3, device = "jpg", path = "./results", 
+#        dpi = 300, width = 5.83, height = 3.9, units = "in")  
 #-- On average, gets hotter as hours since sunup increases.
 #-- Given this factor, this graphic suggests no relationship
 #-- between temperature and hour of capture for daytime fliers

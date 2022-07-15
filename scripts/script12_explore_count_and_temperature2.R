@@ -1,7 +1,7 @@
 #===========================================================================#
 # script12_explore_count_and_temperature2.R
 # 
-# Uses the "combined" data set created in script10 to explore relationsips 
+# Uses the "combined" data set created in script10 to explore relationships 
 #
 # PARTS
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  

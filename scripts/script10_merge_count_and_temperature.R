@@ -261,8 +261,8 @@ p2 <- ggplot(daily20b, aes(x = Date,y = orangeworm)) +
 
 p2
 
-ggsave(filename = "Y20_trapview_wkly_by_site.jpg", p2, path = "./results",
-       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+# ggsave(filename = "Y20_trapview_wkly_by_site.jpg", p2, path = "./results",
+#        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 #---------------------------------------------------------------------------#
 #-- 4. Merge 2019 and 2020 temperature data ---------------------------------
@@ -364,8 +364,8 @@ p3 <- ggplot(temps19, aes(x = Date_time, y = degc_avg)) +
 
 p3
 
-ggsave(filename = "Y19_trapview_temps_daily_by_site.jpg", p3, path = "./results",
-       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+# ggsave(filename = "Y19_trapview_temps_daily_by_site.jpg", p3, path = "./results",
+#        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 
 # Temperatures plot for 2020
@@ -396,8 +396,8 @@ p4 <- ggplot(temps20, aes(x = Date_time, y = degc_avg)) +
 
 p4
 
-ggsave(filename = "Y20_trapview_temps_daily_by_site.jpg", p4, path = "./results",
-       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+# ggsave(filename = "Y20_trapview_temps_daily_by_site.jpg", p4, path = "./results",
+#        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 ### Output combined 2019 plots
 

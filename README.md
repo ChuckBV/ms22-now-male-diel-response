@@ -60,16 +60,15 @@ erroneous counts.
  individual temperature and count profiles for 2019 and 2020, and uses
  ggpubr to combine these into composite graphics ***Fig2.jpg*** and 
  ***Fig3.jpg***
- - **script1_y19_plot_weeks_hour.R** Creates a cool figure showing flights 
- for 2019
+ - **script11_explore_count_and_temperature.R** Creates Fig5.jpg
  - **script2_y19_temperature_data.R** Plot temperature and RH readings daily 
  at 3AM (once per day so the chart is not too noisy)
  - 
  
 ## Output files
- - Fig2.jpg
- - Fig3.jpg
- - Fig4.jpg
+ - Fig2.jpg -- Daily Counts and hourly temperatures in 2019
+ - Fig3.jpg -- Daily Counts and hourly temperatures in 2020
+ - Fig4.jpg -- x
  - Fig5.jpg
  
  
