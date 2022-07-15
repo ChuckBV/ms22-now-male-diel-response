@@ -23,7 +23,8 @@ library(tidyverse)
 library(lubridate)
 library(scales)
 library(ggpubr)
-library(DescTools)
+
+#library(DescTools)
 
 #---------------------------------------------------------------------------#
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
@@ -202,8 +203,8 @@ p1 <- ggplot(daily19b, aes(x = Date,y = orangeworm)) +
 
 p1
 
-ggsave(filename = "Y19_trapview_daily_by_site.jpg", p1, path = "./results",
-       width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+# ggsave(filename = "Y19_trapview_daily_by_site.jpg", p1, path = "./results",
+#        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 ### Get plot for 2020 count data to match the one for 2019 
 ### count data
@@ -320,15 +321,22 @@ temps
 # 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
 # 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
 
-lubridate::tz(temps$datetime) <- x
-attr(temps$datetime,"tzone")
+lubridate::tz(temps$Date_time) <- x
+attr(temps$Date_time,"tzone")
+
+####
+# Get a vector of degrees C from the vector of degrees F
+####
+
+temps$degf_avg[1:10]
+# [1] 88.70 84.00 80.67 77.52 74.84 72.88 72.58 72.60 73.73 73.12
 
 # Add Yr, Mnth, Julian, and Hr to the temps data set
 temps <- temps %>% 
-  mutate(Yr = year(datetime),
-         Mnth = month(datetime, label = TRUE, abbr = TRUE),
-         Julian = yday(datetime),
-         Hr = hour(datetime))
+  mutate(Yr = year(Date_time),
+         Mnth = month(Date_time, label = TRUE, abbr = TRUE),
+         Julian = yday(Date_time),
+         Hr = hour(Date_time))
 head(temps,3)
 #      site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
 # 1   Perez    tv19a 2019-06-04 16:00:00    88.70    86.2    90.5  59.84
