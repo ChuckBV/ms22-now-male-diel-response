@@ -24,8 +24,6 @@ library(lubridate)
 library(scales)
 library(ggpubr)
 
-#library(DescTools)
-
 #---------------------------------------------------------------------------#
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
 #---------------------------------------------------------------------------#
@@ -321,15 +319,15 @@ temps
 # 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
 # 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
 
-lubridate::tz(temps$Date_time) <- x
+tzone <- "America/Los_Angeles"
+lubridate::tz(temps$Date_time) <- tzone
 attr(temps$Date_time,"tzone")
 
-####
-# Get a vector of degrees C from the vector of degrees F
-####
+#### Get new variable w degrees C
+temps <- temps %>% 
+  mutate(degc_avg = (degf_avg - 32)/1.8)
 
-temps$degf_avg[1:10]
-# [1] 88.70 84.00 80.67 77.52 74.84 72.88 72.58 72.60 73.73 73.12
+plot(temps$degf_avg,temps$degc_avg) # verify
 
 # Add Yr, Mnth, Julian, and Hr to the temps data set
 temps <- temps %>% 
@@ -349,17 +347,14 @@ temps19 <- temps %>%
   filter(year(Date_time) == 2019)
 str(temps19)
 
-### 
-
-
-p3 <- ggplot(temps19, aes(x = Date_time, y = degf_avg)) +
+p3 <- ggplot(temps19, aes(x = Date_time, y = degc_avg)) +
   geom_line() +
   facet_grid(TrapCode ~ .) +
   theme_bw() +
   #scale_x_datetime(breaks = as.Date.POSIXct(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
   scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +
-  ylab("Temperature (degrees Fahrenheit)") +
+  ylab("Temperature (degrees Celcius)") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
         axis.title.x = element_text(color = "black", size = 9),
@@ -385,13 +380,13 @@ temps20$site[temps20$site == "mikewoolf4"] <- "West 4"
 temps20$site[temps20$site == "mikewoolf5"] <- "West 5"
 
 
-p4 <- ggplot(temps20, aes(x = Date_time, y = degf_avg)) +
+p4 <- ggplot(temps20, aes(x = Date_time, y = degc_avg)) +
   geom_line() +
   facet_grid(TrapCode ~ .) +
   theme_bw() +
   scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +
-  ylab("Temperature (degrees Fahrenheit)") +
+  ylab("Temperature (degrees Celcius)") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
         axis.title.x = element_text(color = "black", size = 9),
@@ -409,7 +404,7 @@ ggsave(filename = "Y20_trapview_temps_daily_by_site.jpg", p4, path = "./results"
 p1p3 <- ggarrange(p1,p3, ncol = 2)
 p1p3
 
-ggsave(filename = "Y19_counts_temps_daily_by_site.jpg", p1p3, path = "./results",
+ggsave(filename = "Fig2.jpg", p1p3, path = "./results",
        width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 ### Output combined 2020 plots
@@ -417,7 +412,7 @@ ggsave(filename = "Y19_counts_temps_daily_by_site.jpg", p1p3, path = "./results"
 p2p4 <- ggarrange(p2,p4, ncol = 2)
 p2p4
 
-ggsave(filename = "Y20_counts_temps_daily_by_site.jpg", p2p4, path = "./results",
+ggsave(filename = "Fig3.jpg", p2p4, path = "./results",
        width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 
@@ -425,7 +420,8 @@ ggsave(filename = "Y20_counts_temps_daily_by_site.jpg", p2p4, path = "./results"
 # if they match a record in counts
 length(temps$degf_avg[is.na(temps$degf_avg)])
 # [1] 1
-temps <- temps[!is.na(temps$datetime),] # drop the 1 NA in case that is a problem
+#temps <- 
+temps <- temps[!is.na(temps$Date_time),] # drop the 1 NA in case that is a problem
 
 head(temps,2)
 
@@ -525,9 +521,9 @@ Hi_lo <- temps %>%
   summarise(Hi = max(degf_hi),
             Lo = min(degf_lo))
 
-Desc(Hi ~ Mnth, data = Hi_lo)
+DescTools::Desc(Hi ~ Mnth, data = Hi_lo)
 
-Desc(Lo ~ Mnth, data = Hi_lo)
+DescTools:Desc(Lo ~ Mnth, data = Hi_lo)
 
 
 ### Boxplots of high and low temperature by month
