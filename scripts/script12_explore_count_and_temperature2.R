@@ -1,7 +1,7 @@
 #===========================================================================#
 # script12_explore_count_and_temperature2.R
 # 
-# Uses the "combined" data set created in script10 to explore relationsips 
+# Uses the "combined" data set created in script10 to explore relationships 
 #
 # PARTS
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  
@@ -166,11 +166,11 @@ combined4[!complete.cases(combined4), ]
 combined4 <- combined4[complete.cases(combined4), ]
 
 ### Now plot and determine correlations
-p1 <- ggplot(combined4, aes(x = degf_avg, y = Hr2)) +
+p1 <- ggplot(combined4, aes(x = degc_avg, y = Hr2)) +
   geom_point() +
   facet_wrap(vars(Mnth.x), ncol = 3, nrow = 4) +
   theme_bw() +
-  xlab("Degrees F at time of median capture") +
+  xlab("Degrees C at time of median capture") +
   ylab("Median capture time (Hours after sunset)") +
   theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 8),
@@ -181,7 +181,7 @@ p1 <- ggplot(combined4, aes(x = degf_avg, y = Hr2)) +
 
 p1
 
-ggsave(filename = "Temp_v_time_med_capture_by_month.jpg", plot = p1, device = "jpg", path = "./results",
+ggsave(filename = "Fig5.jpg", plot = p1, device = "jpg", path = "./results",
        dpi = 300, width = 5.83, height = 5.83, units = "in")
 
 ### Examine correlations (if any). The sophisticated way to do this would be
