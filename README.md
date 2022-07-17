@@ -11,8 +11,6 @@ environmental factors over the field season. See the manuscript in "./doc".
 
 x
 
-
-
 ## ./data
 
 ***allsites_y19.csv***" and "***allsites_y20.csv***" are equivalent files of trap 
