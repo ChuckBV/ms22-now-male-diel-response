@@ -1,4 +1,8 @@
-# julian_date_and_hour_scratch.R
+# julian_date_and_hour_algorithm.R
+
+### Demonstrates code used to shift the start of the Julian day from midnight
+### to 1800 local time (nominal sundow, in fact long before sundown for much
+### of the field season for NOW)
 
 library(tidyverse)
 
