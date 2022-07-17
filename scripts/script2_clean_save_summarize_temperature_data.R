@@ -127,7 +127,7 @@ head(temps,3)
 # 3 Perez     E 2019-06-04 18:00:00    80.67    79.0    82.2  74.41 27.03889 2019  Jun    155 18
 
 ### Save modified 2-year temperature data set
-write.csv(temps,"temps_all.csv", row.names = FALSE)
+write.csv(temps,"./data-intermediate/temps_all.csv", row.names = FALSE)
 
 #---------------------------------------------------------------------------#
 #-- 3. Merge all Count and temperature data then save                 -------
