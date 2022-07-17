@@ -7,6 +7,7 @@
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  
 # 2. Examine captures after 7AM (before midnight) (line 64)  
 # 3. Captures by hour compared between months (line 108)
+#     Fig4.jpg
 #
 # combined--imported as created in script10
 # combined2--adds categorical variable for off hours

@@ -13,12 +13,14 @@
 #  - Only first obs of night for that site
 #  - Additional variables adjust 0 hour to sundown and keep next sun-up in
 #    the same Julian day
-# combined4 (not yet done)
+# combined4
 #  - All captures per night
 #  - Additional variables to adjust 0 hour to sundown and keep next sun-up 
 #    in the same Julian day (as in 3)
 #  - Used to examine whether captures are less likely overall on hotter
 #    nights
+#
+# Fig 5, Median capture vs. tempature by month
 #  
 #===========================================================================#
 
