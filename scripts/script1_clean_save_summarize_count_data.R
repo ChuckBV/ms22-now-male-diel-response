@@ -2,19 +2,15 @@
 # script1_clean_save_summarize_count_data.R
 # 
 # PARTS
-# 1. Load combined 2019 and 2020 count and temperature data files (line 15)
-# 2. Merge and 2019 and 2020 count data (line 62)
+# 1. Load combined 2019 and 2020 count data files (line 15)
+# 2. Pool and save and 2019 and 2020 count data (line 55)
 #    - output "counts_all.csv" to ./data-intermediate
-# 3. Seasonal overview using just count data (line 82)
-#    - p1: Daily count by site (line graph) for 2019
-#    - p2: Daily count by site (line graph) for 2020
+# 3. Obtain total NOW capture by year and month (line 92)
 #
 #===========================================================================#
 
 library(tidyverse)
 library(lubridate)
-library(scales)
-library(ggpubr)
 
 #---------------------------------------------------------------------------#
 #-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
@@ -60,17 +56,6 @@ counts_y19y20 <- rbind(allsites19,allsites20)
 
 write.csv(counts_y19y20,"./data-intermediate/counts_all.csv", row.names = FALSE)
 
-### Modify for merge compatibility)
-
-# # Drop counts of zero
-# allsites19 <- allsites19 %>% 
-#   filter(pest_dif > 0)
-# #-- 802 observations
-# 
-# allsites20 <- allsites20 %>% 
-#   filter(pest_dif > 0)
-# #-- 681 observations
-
 ### Set datetime format
 counts_y19y20$datetime <- as.POSIXct(counts_y19y20$datetime)
 str(counts_y19y20)
@@ -82,18 +67,7 @@ lubridate::tz(counts_y19y20$datetime) <- "America/Los_Angeles"
 attr(counts_y19y20$datetime,"tzone") # confirmation
 # [1] "America/Los_Angeles"
 
-# ### Final QC, expunge records not reviewed
-# 
-# counts_y19y20 %>% 
-#   filter(reviewed == "No")
-# #   site TrapCode            datetime pest_nmbr pest_dif reviewed event
-# # 1 Perez    tv19a 2019-08-16 15:56:00         3        3       No  <NA>
-# # 2 Perez    tv19a 2019-08-19 04:28:00         1        1       No  <NA>
-# # 3  usda    tv19d 2019-08-19 00:28:00         1        1       No  <NA>
-# # 4  usda    tv19d 2019-08-31 05:27:00         1        1       No  <NA>
-
 counts_y19y20 <- counts_y19y20 %>% 
-  #filter(reviewed != "No") %>% 
   select(datetime,pest_dif,site,site2) %>% 
   mutate(Yr = year(datetime),
          Mnth = month(datetime, label = TRUE, abbr = TRUE),
