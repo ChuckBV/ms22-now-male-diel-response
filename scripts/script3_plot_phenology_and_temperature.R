@@ -2,12 +2,11 @@
 # script3_plot_phenology_and_temperature.R
 # 
 # PARTS
-# 1. Load combined 2019 and 2020 count and temperature data files (line 15)
-# 2. Merge and 2019 and 2020 count data (line 25)
-# 3. Seasonal overview using just count data (line 82)
+# 1. Load 2019 and 2020 count data (line 25)
+# 2. Seasonal overview of count data (line 66)
 #    - p1: Daily count by site (line graph) for 2019
 #    - p2: Daily count by site (line graph) for 2020
-# 4. Merge 2019 and 2020 temperature data (line 232)
+# 3. Load 2019 and 2020 temperature data (line 232)
 #    - p3: Hourly temperature by site (line graph) for 2019
 #    - p4: Hourly temperature by site (line graph) for 2020
 # 5. Merge non-zero count data and temperature data (line 319)
@@ -25,59 +24,18 @@ library(scales)
 library(ggpubr)
 
 #---------------------------------------------------------------------------#
-#-- 1. Load and clean 2019 and 2020 data files (same as script3) ------------
-#---------------------------------------------------------------------------#
-
-### Load original data files into memory
-
-allsites19 <- read.csv("./data/allsites_y19_scrubbed.csv") #37,916 obs
-allsites20 <- read.csv("./data//allsites_y20_scrubbed.csv") #31,474 obs
-
-### Provide a trap_code variable. Contains orignial site names, names from
-### the Hengst thesis, and identifiers to be use for the manuscript
-
-# upload
-trapcodes <- read.csv("./data/trapview_trap_codes.csv")
-trapcodes
-#    Year        site TrapCode site2
-# 1  2019       Perez    tv19a     E
-# 2  2019 MWoolf_west    tv19b     A
-# 3  2019 MWoolf_east    tv19c     B
-# 4  2019        usda    tv19d     C
-# 5  2019   UCKearney    tv19e     D
-# 6  2020  mikewoolf1    tv20a    A1
-# 7  2020  mikewoolf2    tv20b    A2
-# 8  2020  mikewoolf3    tv20c    A3
-# 9  2020  mikewoolf4    tv20d    A4
-# 10 2020  mikewoolf5    tv20e    A5
-
-# isolate by year
-trapcodes19 <- trapcodes[trapcodes$Year == 2019,c(2,4)]
-trapcodes20 <- trapcodes[trapcodes$Year == 2020,c(2,4)]
-
-# merge w present data
-allsites19 <- left_join(trapcodes19,allsites19)
-allsites20 <- left_join(trapcodes20,allsites20)
-
-#---------------------------------------------------------------------------#
-#-- 2. Pool and 2019 and 2020 count data -----------------------------------
+#-- 1. Pool and 2019 and 2020 count data -----------------------------------
 #---------------------------------------------------------------------------#
 
 ### Pool and save all count observarions (including 0)
-counts_y19y20 <- rbind(allsites19,allsites20)
-
-write.csv(counts_y19y20,"./data-intermediate/counts_all.csv", row.names = FALSE)
-
-### Modify for merge compatibility)
-
-# # Drop counts of zero
-# allsites19 <- allsites19 %>% 
-#   filter(pest_dif > 0)
-# #-- 802 observations
-# 
-# allsites20 <- allsites20 %>% 
-#   filter(pest_dif > 0)
-# #-- 681 observations
+counts_y19y20 <- read_csv("./data-intermediate/counts_all.csv")
+counts_y19y20
+# A tibble: 69,390 x 7
+#   site  site2 datetime            pest_nmbr pest_dif reviewed event
+#   <chr> <chr> <dttm>                  <dbl>    <dbl> <chr>    <chr>
+# 1 Perez E     2019-06-03 16:56:00         0        0 No       NA   
+# 2 Perez E     2019-06-03 17:56:00         0        0 No       NA   
+# 3 Perez E     2019-06-03 18:56:00         0        0 No       NA   
 
 ### Set datetime format
 counts_y19y20$datetime <- as.POSIXct(counts_y19y20$datetime)
@@ -90,18 +48,8 @@ lubridate::tz(counts_y19y20$datetime) <- "America/Los_Angeles"
 attr(counts_y19y20$datetime,"tzone") # confirmation
 # [1] "America/Los_Angeles"
 
-# ### Final QC, expunge records not reviewed
-# 
-# counts_y19y20 %>% 
-#   filter(reviewed == "No")
-# #   site TrapCode            datetime pest_nmbr pest_dif reviewed event
-# # 1 Perez    tv19a 2019-08-16 15:56:00         3        3       No  <NA>
-# # 2 Perez    tv19a 2019-08-19 04:28:00         1        1       No  <NA>
-# # 3  usda    tv19d 2019-08-19 00:28:00         1        1       No  <NA>
-# # 4  usda    tv19d 2019-08-31 05:27:00         1        1       No  <NA>
 
 counts_y19y20 <- counts_y19y20 %>% 
-  #filter(reviewed != "No") %>% 
   select(datetime,pest_dif,site,site2) %>% 
   mutate(Yr = year(datetime),
          Mnth = month(datetime, label = TRUE, abbr = TRUE),
@@ -114,12 +62,8 @@ head(counts_y19y20,2)
 # 1 2019-06-06 03:59:00        1 Perez     E 2019  Jun    157  3     59
 # 2 2019-06-06 05:59:00        2 Perez     E 2019  Jun    157  5     59
 
-# Use base r histogram to confirm that most counts are close to 30 and 60 
-# minutes of the hour
-hist(counts_y19y20$Minute)
-
 #---------------------------------------------------------------------------#
-#-- 3. Seasonal overview using just the count data from both years  ---------
+#-- 2. Seasonal overview using just the count data from both years  ---------
 #---------------------------------------------------------------------------#
 
 ### temporary data frame allsites for current figure
@@ -132,8 +76,6 @@ head(allsites,2)
 #   datetime pest_dif  site site2   Yr Mnth Julian Hr Minute wk    caldate
 # 1 2019-06-06 03:59:00        1 Perez     E 2019  Jun    157  3     59 23 2019-06-06
 # 2 2019-06-06 05:59:00        2 Perez     E 2019  Jun    157  5     59 23 2019-06-06
-
-
 
 ### sumarize counts by day
 
@@ -176,20 +118,9 @@ daily19
 ### data prior to May 16
 begin19 <- as.Date("2019-05-16")
 
-
-# Rename variable for prettier graph (now not used)
-# daily19$site[daily19$site == "MWoolf_east"] <- "MW East"
-# daily19$site[daily19$site == "MWoolf_west"] <- "MW West"
-# daily19$site[daily19$site == "usda"] <- "USDA"
-
 site2 <- sort(unique(daily19$site2))
 site2
 # [1] "A" "B" "C" "D" "E"
-
-# rename site to Site (now not used)
-# daily19$Site <- daily19$site
-# daily19$site <- NULL
-# indirect base method used because dplyr complained about ambiguity
 
 Dates19 <- seq(begin19,end19, by = "1 day")
 length(Dates19)
@@ -228,8 +159,8 @@ str(y19b)
 # $ orangeworm: int  NA NA NA NA NA NA 0 4 2 60 ...
 
 # keep getting errors--messed up by NA?
-x <- y19b[complete.cases(y19b), ]
-x
+y19b <- y19b[complete.cases(y19b), ]
+y19b
 
 p1 <- ggplot(x, aes(x = Date,y = orangeworm)) +
   geom_line() +
@@ -266,13 +197,6 @@ daily20
 # 1  2020    10 2020-03-06 A4             0
 # 2  2020    10 2020-03-07 A4             0
 
-
-# Rename variable for prettier graph (not not used)
-# daily20$site[daily20$site == "mikewoolf1"] <- "West 1"
-# daily20$site[daily20$site == "mikewoolf2"] <- "West 2"
-# daily20$site[daily20$site == "mikewoolf3"] <- "West 3"
-# daily20$site[daily20$site == "mikewoolf4"] <- "West 4"
-# daily20$site[daily20$site == "mikewoolf5"] <- "West 5"
 
 site2 <- sort(unique(daily20$site2))
 site2
@@ -324,7 +248,7 @@ p2
 #        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 #---------------------------------------------------------------------------#
-#-- 4. Merge 2019 and 2020 temperature data ---------------------------------
+#-- 3. Load 2019 and 2020 temperature data ---------------------------------
 #---------------------------------------------------------------------------#
 
 alltemps19 <- readr::read_csv("./data/trapview_temps_degf_y19.csv")
@@ -356,15 +280,6 @@ head(alltemps20,2)
 #         site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
 # 1 mikewoolf1    tv20a 2020-04-22 02:00:00    51.50    50.2    52.5  90.27
 # 2 mikewoolf1    tv20a 2020-04-22 03:00:00    49.53    48.9    49.8  93.83
-
-# Modify for merge compatibility (now not used)
-# alltemps19 <- alltemps19 %>% 
-#   dplyr::rename(datetime = Date_time)
-# alltemps20 <- alltemps20 %>% 
-#   dplyr::rename(datetime = Date_time)
-
-### Make variables in alltemps19 and alltemps20 compatible with each
-### other and with the counts data set
 
 unique(counts_y19y20$TrapCode)
 # [1] "tv19a" "tv19b" "tv19c" "tv19d" "tv19e" "tv20a" "tv20b" "tv20c" "tv20d" "tv20e" 
