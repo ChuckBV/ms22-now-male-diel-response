@@ -2,20 +2,12 @@
 
 Repository: github.org/chuckbv/ms22-now-male-diel-response
 
-## Interpretive Summary
+## Overview
 
- 1. The impact of environment and the biological clock on the timing of sexual
- activity of pest moths like the navel orangeworm is important for 
- optimization of pheromone mating disruption for their control.
- 2. Remote automated camera traps offer a more efficient way to monitor such 
- pests for treatment decisions, and can also provide a research tool to 
- improve understanding of biology of these pests.
- 3. Two years of camera trap data corroborated that the peak time of arrival 
- of males to a synthetic pheromone source was influenced by seasonal factors,
- but also revealed more variability and less direct effect of temperature 
- compared to earlier studies primarily examining females.
- 4. Improve understanding of photoperiodic responses of males will improve
- understanding of monitoring data and optimization of mating disruption. 
+Five remote automated camera traps baited with a pheromone monitoring lure 
+were deployed in 2019 and 2020 to characterize diel patterns of response
+of navel orangeworm **Amyelois transitella** (Walker) as effected by 
+environmental factors over the field season. See the manuscript in "./doc".
 
 ## Abstract
 
