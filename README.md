@@ -9,30 +9,9 @@ were deployed in 2019 and 2020 to characterize diel patterns of response
 of navel orangeworm **Amyelois transitella** (Walker) as effected by 
 environmental factors over the field season. See the manuscript in "./doc".
 
-## Abstract
+x
 
-Navel orangeworm, Amyelois transitella (Walker), is the primary insect pest 
-of walnuts, pistachio, and almonds in California. Sex pheromone based mating 
-disruption has recently been commercialized for this pest in the form of timed 
-aerosol dispensers. Dispenser efficiency may be increased by timing releases 
-with the active mating period of navel orangeworm. Past work found that the 
-peak time of sexual activity for navel orangeworm females is 2 hours before 
-sunrise when temperatures are above 18° C. Inference of male responsiveness 
-from data collected in that study was limited by the necessity of using 
-laboratory-reared females as a source of sex pheromone emission to attract 
-males and the inherent limitations of human observers for nocturnal events. 
-Here we used camera traps baited with artificial pheromone to observe male 
-navel orangeworm mating response in the field over two field seasons. Male 
-response to synthetic pheromone exhibited diel patterns broadly similar to 
-females, i.e., they were active for a brief period of 2 to 3 hours before dawn 
-under summer conditions and began responding to pheromone earlier and over 
-a longer period of time during spring and fall. Contrary to the previous 
-findings with females, some males were captured at all hours of the day and 
-night, and there was no evidence of short-term change of pheromone 
-responsiveness in response to temperature. Environmental effects on the 
-response of navel orangeworm males to an artificial pheromone source differs 
-in important ways from the environmental effects on female release of sex 
-pheromone.
+
 
 ## ./data
 
