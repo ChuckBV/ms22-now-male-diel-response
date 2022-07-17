@@ -1,4 +1,4 @@
-# Data and Anlysis for Chapter 2, Foster Hengst Thesis 
+# Data and Anlysis for a Camera Trap Study of Time of Diel Patterns in Male NOW 
 
 Repository: github.org/chuckbv/ms22-now-male-diel-response
 
