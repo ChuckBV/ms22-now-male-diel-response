@@ -1,4 +1,7 @@
-# scratch_frequency_tables.R
+# algorithm_expand_frequency_tables.R
+
+### Shows how to expand frequency tables from summary table form to individual
+### records
 
 library(vcdExtra)
 

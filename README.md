@@ -1,8 +1,6 @@
 # Data and Anlysis for Chapter 2, Foster Hengst Thesis 
 
-Repository: github.org/chuckbv/ms-hengst-thesis-chap2-trapview
-
-Simplified and cleaned version of Trapview data and analysis
+Repository: github.org/chuckbv/ms22-now-male-diel-response
 
 ## Interpretive Summary
 
