@@ -7,7 +7,7 @@
 # 1. Basic questions about combined data set (multiple obs/night?)(line 14)  
 # 2. Examine captures after 7AM (before midnight) (line 64)  
 #
-# combined--imported as created in script10
+# all--imported as created in script2
 # combined3
 #  - Night only
 #  - Only first obs of night for that site
@@ -29,31 +29,69 @@ library(lubridate)
 
 #-- 1. (Heading to be determined) --------
 
-all <- read_csv("./data-intermediate/merged_count_and_temp_data.csv")
+all <- read_csv("./data-intermediate/combined_count_temp_all.csv")
 all
+# A tibble: 36,055 x 8
+#   site2    Yr Mnth.x Julian    Hr count Mnth.y degc_avg
+#   <chr> <dbl> <chr>   <dbl> <dbl> <dbl> <chr>     <dbl>
+# 1 A      2019 May       142    15     0 NA         NA  
+# 2 A      2019 May       142    16     0 May        21.6
+# 3 A      2019 May       142    17     0 May        19.8
+# 4 A      2019 May       142    18     0 May        18.1
+# 5 A      2019 May       142    20     0 May        14.2
+# 6 A      2019 May       142    21     0 May        13.5
 
+# combined <- read_csv("./data/merged_count_and_temp_data.csv")
+# combined
+# # A tibble: 1,428 x 11
+# #   pest_dif site         Yr Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
+# #      <dbl> <chr>     <dbl> <chr>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
+# # 1        1 UCKearney  2019 Jun       153     5     60.2    59.7    61.2   89.8 Jun   
+# # 2        1 UCKearney  2019 Jul       191     4     61.2    60.3    62.2   83.6 Jul   
+# # 3        1 UCKearney  2019 Jul       194     4     64.2    63.9    65.1   93.2 Jul 
+# 
+# combined[!complete.cases(combined), ]
+# #-- Tibble of 0, all complete cases
 
-combined <- read_csv("./data/merged_count_and_temp_data.csv")
-combined
-# A tibble: 1,428 x 11
-#   pest_dif site         Yr Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
-#      <dbl> <chr>     <dbl> <chr>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
-# 1        1 UCKearney  2019 Jun       153     5     60.2    59.7    61.2   89.8 Jun   
-# 2        1 UCKearney  2019 Jul       191     4     61.2    60.3    62.2   83.6 Jul   
-# 3        1 UCKearney  2019 Jul       194     4     64.2    63.9    65.1   93.2 Jul 
+## Pool counts by Mnth and Hour
+x <- all %>% 
+  group_by(Mnth.x) %>% 
+  summarize(count = sum(count, na.rm = TRUE))
+x
+# A tibble: 9 x 2
+#    Mnth.x count
+#   <chr>  <dbl>
+# 1 Apr      152
+# 2 Aug      906
+# 3 Jul      771
+# 4 Jun      190
+# 5 Mar        6
+# 6 May      293
+# 7 Nov        0
+# 8 Oct      143
+# 9 Sep     1133
 
-combined[!complete.cases(combined), ]
-#-- Tibble of 0, all complete cases
-
-## Get Julian date reference points for months
+all <- all %>% 
+  group_by(Mnth.x,Hr) %>% 
+  summarize(count = sum(count, na.rm = TRUE)) %>% 
+  filter(Mnth.x %in% c("Apr","May","Jun","Jul","Aug","Sep","Oct")) %>% 
+  rename(Mnth = Mnth.x)
+all
+# A tibble: 168 x 3
+# Groups:   Mnth.x [7]
+#   Mnth.x    Hr count
+#   <chr>  <dbl> <dbl>
+# 1 Apr        0     4
+# 2 Apr        1    10
+# 3 Apr        2    17
+# 4 Apr        3    23
+# 5 Apr        4    32
+# 6 Apr        5    29
 
 # Make Mnth.x into a factor to conserve order
-combined[combined$Mnth.x == "Mar", ] # 2 observations, drop them
-combined <- combined[combined$Mnth.x != "Mar", ]
-
-combined$Mnth.x <- factor(combined$Mnth.x, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
-combined
-levels(combined$Mnth.x)
+all$Mnth <- factor(all$Mnth, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
+all
+levels(all$Mnth)
 
 ### Algorithm to shift time and date. This is how we did the time shift in
 ### script11. See also "julian_date_and_hour_scratch.R". Note that numbering
@@ -61,15 +99,25 @@ levels(combined$Mnth.x)
 ### switch back and forth.
 
 ### Anything after midnight and before sundown (6PM) has the Julian date from 
-### the previous day
-combined2 <- combined %>% 
-  dplyr::mutate(Hr2 = ifelse(Hr >= 18, Hr - 18, Hr + 6),
-                Julian2 = ifelse(Hr >= 18, Julian, Julian - 1)) %>% 
-  dplyr::arrange(Julian,Hr)
-combined2
+### the previous day. See "algorithm_julian_date_and_hour.R"
+# df2 <- df1 %>% 
+#   mutate(hr2 = ifelse(hr >= 18, hr - 18, hr + 6),
+#          julian_day2 = ifelse(hr >= 18, julian_day +1, julian_day)) %>% 
+#   select(julian_day,hr,julian_day2,hr2)
+# df2
 
-combined2[!complete.cases(combined2), ]
+all2 <- all %>% 
+  dplyr::mutate(Hr2 = ifelse(Hr >= 18, Hr - 18, Hr + 6)) %>% 
+  dplyr::arrange(Mnth,Hr,Hr2) %>% 
+  dplyr::select(Mnth,Hr,Hr2,count)
+all2
+
+all2[!complete.cases(all2), ]
 #-- Tibble of 0, all complete cases
+
+
+
+
 
 ### Get median observation for Julian2. In order to be certain that median
 ### functions correctly, go from frequency table form (moths per hour of)
