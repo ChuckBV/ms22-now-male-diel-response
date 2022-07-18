@@ -1,5 +1,5 @@
 #===========================================================================#
-# script12_explore_count_and_temperature2.R
+# script12b_explore_count_and_temperature2.R
 # 
 # Uses the "combined" data set created in script10 to explore relationsips 
 #

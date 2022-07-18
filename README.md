@@ -9,20 +9,28 @@ were deployed in 2019 and 2020 to characterize diel patterns of response
 of navel orangeworm **Amyelois transitella** (Walker) as effected by 
 environmental factors over the field season. See the manuscript in "./doc".
 
-x
+The two algorithm scripts demonstrate how to: 
 
-## ./data
+### 1. Shift data and hour of  day
 
-***allsites_y19.csv***" and "***allsites_y20.csv***" are equivalent files of trap 
-events for the two years. The ***trapview_temps_degf_y19.csv*** and 
-***trapview_temps_degf_y19.csv*** temperature files are temperature data 
-reported by the traps over the same period.
+Shift date and hour of day so that the Julian date is from 6Pm PST and 6PM PST 
+is 0 hr, midnight is 06:00, 6Am is 12:00, and so on.
 
-The two ***_scrubbed.csv*** provide count data after using REGEX to removed 
-erroneous counts. 
+### 2. Expand from a frequency table to case form 
+
+Case form is one observation for each moth. It is helpful for accurate 
+determinatation of the median and boxplots
+
 
 ## Scripts
- - **script10_merge_count_and_temperature.R** Infile to load 4 relevant csv 
+ - **script1** Infile and clean count data for 2019 and 2020
+ - **script2** Infile and clean temperature data for 2019 and 2020
+ - **script3** Produce the combine phenology figures, Fig2 and Fig3
+ - **script4** Do chisqr test of daytime fliers vs year, KW test of central 
+ tendency of male capture by moth, and generate Fig 4 boxplot of time of 
+ capture by month.
+  
+ Infile to load 4 relevant csv 
  files into dataframes in Global Environment, head these files. Creates
  individual temperature and count profiles for 2019 and 2020, and uses
  ggpubr to combine these into composite graphics ***Fig2.jpg*** and 
