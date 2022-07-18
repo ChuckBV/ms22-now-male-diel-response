@@ -63,7 +63,7 @@ head(counts_y19y20,2)
 # 2 2019-06-06 05:59:00        2 Perez     E 2019  Jun    157  5     59
 
 #---------------------------------------------------------------------------#
-#-- 2. Seasonal overview using just the count data from both years  ---------
+#-- 2. Plots for daily count data for 2019 and 2020                 ---------
 #---------------------------------------------------------------------------#
 
 ### temporary data frame allsites for current figure
@@ -162,7 +162,7 @@ str(y19b)
 y19b <- y19b[complete.cases(y19b), ]
 y19b
 
-p1 <- ggplot(x, aes(x = Date,y = orangeworm)) +
+p1 <- ggplot(y19b, aes(x = Date,y = orangeworm)) +
   geom_line() +
   facet_grid(Site ~ .) +
   theme_bw() +
@@ -248,50 +248,12 @@ p2
 #        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 #---------------------------------------------------------------------------#
-#-- 3. Load 2019 and 2020 temperature data ---------------------------------
+#-- 3. Plots for hourly temperature  data for 2019 and 2020 ----------------
 #---------------------------------------------------------------------------#
 
-alltemps19 <- readr::read_csv("./data/trapview_temps_degf_y19.csv")
-alltemps20 <- readr::read_csv("./data/trapview_temps_degf_y20.csv")
-
-### Merge TrapCode into 2020 data
-
-unique(alltemps19$site)
-# [1] "UCKearney"   "usda"        "Perez"       "MWoolf_west" "MWoolf_east"
-
-alltemps19 <- left_join(trapcodes19,alltemps19) # parallel with line 44
-head(alltemps19,2)
-#    site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
-# 1 Perez    tv19a 2019-06-04 16:00:00     88.7    86.2    90.5  59.84
-# 2 Perez    tv19a 2019-06-04 17:00:00     84.0    82.4    85.6  69.78
-
-
-unique(alltemps20$site) #17,580 obs
-# [1] "MWT1" "MWT2" "MWT3" "MWT4" "MWT5"
-
-alltemps20$site[alltemps20$site == "MWT1"] <- "mikewoolf1"
-alltemps20$site[alltemps20$site == "MWT2"] <- "mikewoolf2"
-alltemps20$site[alltemps20$site == "MWT3"] <- "mikewoolf3"
-alltemps20$site[alltemps20$site == "MWT4"] <- "mikewoolf4"
-alltemps20$site[alltemps20$site == "MWT5"] <- "mikewoolf5"
-
-alltemps20 <- left_join(trapcodes20,alltemps20) # parallel with line 44
-head(alltemps20,2)
-#         site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
-# 1 mikewoolf1    tv20a 2020-04-22 02:00:00    51.50    50.2    52.5  90.27
-# 2 mikewoolf1    tv20a 2020-04-22 03:00:00    49.53    48.9    49.8  93.83
-
-unique(counts_y19y20$TrapCode)
-# [1] "tv19a" "tv19b" "tv19c" "tv19d" "tv19e" "tv20a" "tv20b" "tv20c" "tv20d" "tv20e" 
-
-# combine the temperature data sets
-temps <- rbind(alltemps19,alltemps20)
+# Load 2 year temperature data from data-intermediate
+temps <- read_csv("./data-intermediate/temps_all.csv")
 temps
-# A tibble: 36,549 x 6
-# site      datetime            degf_avg degf_lo degf_hi rh_avg
-#   <chr>     <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>
-# 1 UCKearney 2019-05-16 17:00:00     56.1    55.4    56.8   83.0
-# 2 UCKearney 2019-05-16 18:00:00     57.5    56.1    58.6   81.7
 
 tzone <- "America/Los_Angeles"
 lubridate::tz(temps$Date_time) <- tzone
@@ -309,21 +271,27 @@ temps <- temps %>%
          Mnth = month(Date_time, label = TRUE, abbr = TRUE),
          Julian = yday(Date_time),
          Hr = hour(Date_time))
-head(temps,3)
-#      site TrapCode           Date_time degf_avg degf_lo degf_hi rh_avg
-# 1   Perez    tv19a 2019-06-04 16:00:00    88.70    86.2    90.5  59.84
-# 2   Perez    tv19a 2019-06-04 17:00:00    84.00    82.4    85.6  69.78
-# 3   Perez    tv19a 2019-06-04 18:00:00    80.67    79.0    82.2  74.41
+temps
+# A tibble: 36,549 x 12
+#   site  site2 Date_time           degf_avg degf_lo degf_hi rh_avg degc_avg    Yr Mnth  Julian    Hr
+#   <chr> <chr> <dttm>                 <dbl>   <dbl>   <dbl>  <dbl>    <dbl> <dbl> <ord>  <dbl> <int>
+# 1 Perez E     2019-06-04 16:00:00     88.7    86.2    90.5   59.8     31.5  2019 Jun      155    16
+# 2 Perez E     2019-06-04 17:00:00     84      82.4    85.6   69.8     28.9  2019 Jun      155    17
+# 3 Perez E     2019-06-04 18:00:00     80.7    79      82.2   74.4     27.0  2019 Jun      155    18
 
+# Pretty and consistent names for plots
+temps <- temps %>% 
+  rename(Site = site2)
 
 ### Temperatures plot for 2019
 temps19 <- temps %>% 
   filter(year(Date_time) == 2019)
 str(temps19)
 
+
 p3 <- ggplot(temps19, aes(x = Date_time, y = degc_avg)) +
   geom_line() +
-  facet_grid(TrapCode ~ .) +
+  facet_grid(Site ~ .) +
   theme_bw() +
   #scale_x_datetime(breaks = as.Date.POSIXct(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
   scale_x_datetime(breaks = date_breaks("1 month")) +
@@ -341,22 +309,13 @@ p3
 # ggsave(filename = "Y19_trapview_temps_daily_by_site.jpg", p3, path = "./results",
 #        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
-
 # Temperatures plot for 2020
 temps20 <- temps %>% 
   filter(year(Date_time) == 2020)
 
-# Rename variable for prettier graph
-temps20$site[temps20$site == "mikewoolf1"] <- "West 1"
-temps20$site[temps20$site == "mikewoolf2"] <- "West 2"
-temps20$site[temps20$site == "mikewoolf3"] <- "West 3"
-temps20$site[temps20$site == "mikewoolf4"] <- "West 4"
-temps20$site[temps20$site == "mikewoolf5"] <- "West 5"
-
-
 p4 <- ggplot(temps20, aes(x = Date_time, y = degc_avg)) +
   geom_line() +
-  facet_grid(TrapCode ~ .) +
+  facet_grid(Site ~ .) +
   theme_bw() +
   scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +

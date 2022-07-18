@@ -29,6 +29,10 @@ library(lubridate)
 
 #-- 1. (Heading to be determined) --------
 
+all <- read_csv("./data-intermediate/merged_count_and_temp_data.csv")
+all
+
+
 combined <- read_csv("./data/merged_count_and_temp_data.csv")
 combined
 # A tibble: 1,428 x 11
@@ -58,7 +62,6 @@ levels(combined$Mnth.x)
 
 ### Anything after midnight and before sundown (6PM) has the Julian date from 
 ### the previous day
-
 combined2 <- combined %>% 
   dplyr::mutate(Hr2 = ifelse(Hr >= 18, Hr - 18, Hr + 6),
                 Julian2 = ifelse(Hr >= 18, Julian, Julian - 1)) %>% 
