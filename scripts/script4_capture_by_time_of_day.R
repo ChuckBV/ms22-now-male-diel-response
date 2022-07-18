@@ -21,8 +21,10 @@ library(FSA)
 library(rcompanion)
 library(vcdExtra)
 
+#---------------------------------------------------------------------------#
+#-- 1. Load combined count and temperature data into memory --------
+#---------------------------------------------------------------------------#
 
-#-- 1. Basic questions about combined data set (multiple obs/night?) --------
 
 all <- read_csv("./data-intermediate/combined_count_temp_all.csv")
 all
@@ -34,53 +36,9 @@ all
 # 3 A      2019 May       142    17     0 May        19.8
 # 4 A      2019 May       142    18     0 May        18.1
 
-# combined <- read_csv("./data/merged_count_and_temp_data.csv")
-# combined
-# # A tibble: 1,428 x 11
-# #   pest_dif site         Yr Mnth.x Julian    Hr degf_avg degf_lo degf_hi rh_avg Mnth.y
-# #      <dbl> <chr>     <dbl> <chr>   <dbl> <dbl>    <dbl>   <dbl>   <dbl>  <dbl> <chr> 
-# # 1        1 UCKearney  2019 Jun       153     5     60.2    59.7    61.2   89.8 Jun   
-# # 2        1 UCKearney  2019 Jul       191     4     61.2    60.3    62.2   83.6 Jul   
-# # 3        1 UCKearney  2019 Jul       194     4     64.2    63.9    65.1   93.2 Jul 
-# 
-# length(combined$pest_dif)
-# # [1] 1428
-# length(combined$pest_dif[is.na(combined$pest_dif)])
-# # [1] 0
-
-#-- First confirms r object and syntax. Second confirms that NAs have already
-#-- been filtered out, and can be assumed not to exist for subsequent code
-
-### How many cases of multiple entries per day?
-all %>%  
-  group_by(site2,Yr,Julian) %>% 
-  dplyr::summarise(moths = sum(count, na.rm = TRUE),
-            nObs = n())
-# A tibble: 577 x 5
-# Groups:   site, Yr [10]
-#   site          Yr Julian moths  nObs
-#   <chr>      <dbl>  <dbl> <dbl> <int>
-# 1 mikewoolf1  2019    142     1     1
-# 2 mikewoolf1  2019    143     3     2
-# 3 mikewoolf1  2019    144     2     1
-
-all %>% 
-  group_by(site2,Yr,Julian) %>% 
-  dplyr::summarize(moths = sum(count, na.rm = TRUE),
-            nObs = n()) %>% 
-  filter(nObs > 1) 
-# A tibble: 331 x 5
-# Groups:   site, Yr [10]
-#   site          Yr Julian moths  nObs
-#   <chr>      <dbl>  <dbl> <dbl> <int>
-# 1 mikewoolf1  2019    143     3     2
-# 2 mikewoolf1  2019    145    60     3
-# 3 mikewoolf1  2019    148    66     4
-
-#-- Multiple obs per night in ca. 99% of cases, even though
-#-- data are in hour increments
-
-#-- 2. Examine captures after 7AM (before midnight) -------------------------
+#---------------------------------------------------------------------------#
+#-- 2. Compare daytime fliers between years         -------------------------
+#---------------------------------------------------------------------------#
 
 # Create variable marking off-hours 
 all2 <- combined %>% 
