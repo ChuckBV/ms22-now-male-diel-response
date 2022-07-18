@@ -329,10 +329,11 @@ p4 <- ggplot(temps20, aes(x = Date_time, y = degc_avg)) +
 
 p4
 
-# ggsave(filename = "Y20_trapview_temps_daily_by_site.jpg", p4, path = "./results",
-#        width = 2.83, height = 5.83, dpi = 300, units = "in", device='jpg')
+#---------------------------------------------------------------------------#
+#-- 4. Combined plots for 2019 and 2020                      ----------------
+#---------------------------------------------------------------------------#
 
-### Output combined 2019 plots
+### Output combined 2020 plots
 
 p1p3 <- ggarrange(p1,p3, ncol = 2)
 p1p3
@@ -349,80 +350,3 @@ ggsave(filename = "Fig3.jpg", p2p4, path = "./results",
        width = 5.83, height = 5.83, dpi = 300, units = "in", device='jpg')
 
 
-# Merge temps to counts w left join, so that records in temps are retained only
-# if they match a record in counts
-length(temps$degf_avg[is.na(temps$degf_avg)])
-# [1] 1
-#temps <- 
-temps <- temps[!is.na(temps$Date_time),] # drop the 1 NA in case that is a problem
-
-head(temps,2)
-
-#-- 5. Merge non-zero Count data to corresponding temperature records -------
-
-counts_y19y20$datetime <- NULL
-temps$datetime <- NULL
-### For counts, the hour function makes the reading more approximate. For 
-### temps, data were sent every hour on the hour and were a summary of the 
-### previous hour, so the hour function gives us something that matches the
-### counts data
-
-combined <- left_join(counts_y19y20, temps, by = c("Yr","site","Julian","Hr"))
-head(combined)
-#   pest_dif      site Yr.x Mnth.x Julian Hr degf_avg degf_lo degf_hi rh_avg Yr.y Mnth.y
-# 1        7 UCKearney 2019    Apr    116 13       NA      NA      NA     NA   NA   <NA>
-# 2        1 UCKearney 2019    May    122  1       NA      NA      NA     NA   NA   <NA>
-# 3        1 UCKearney 2019    May    123  2       NA      NA      NA     NA   NA   <NA>
-# 4        1 UCKearney 2019    May    123 20       NA      NA      NA     NA   NA   <NA>
-# 5        3 UCKearney 2019    May    136  9       NA      NA      NA     NA   NA   <NA>
-# 6        1 UCKearney 2019    Jun    153  5    60.17    59.7    61.2  89.83 2019    Jun
-
-nrow(combined)
-# [1] 1479
-nrow(combined[complete.cases(combined), ])
-# [1] 1428
-### lose some records, but retain most
-
-combined[!complete.cases(combined), ]
-## offenders were in certain times and places
-
-combined <- combined[complete.cases(combined), ]
-combined
-
-write.csv(combined,"./data/merged_count_and_temp_data.csv",row.names = FALSE)
-
-combined19 <-combined %>% 
-  filter(Yr == 2019) %>% 
-  ggplot(aes(x = ))
-
-#-- 6. Explore high and low temps by month  ----------------------
- 
-Hi_lo <- temps %>%
-  group_by(Mnth,Julian) %>%
-  summarise(Hi = max(degf_hi),
-            Lo = min(degf_lo))
-
-DescTools::Desc(Hi ~ Mnth, data = Hi_lo)
-
-DescTools:Desc(Lo ~ Mnth, data = Hi_lo)
-
-
-### Boxplots of high and low temperature by month
-ggplot(Hi_lo, aes(x = Mnth, y = Hi)) +
-         geom_boxplot()
-
-ggplot(Hi_lo, aes(x = Mnth, y = Lo)) +
-  geom_boxplot()
-
-### Bloxplots of temperautre by hour, facet_wrap month
-### Crude, but demonstrates that temperature continues to increase until 
-### the last hour of daylight
-
-x <- c("Mar","Apr","May","Jun","Jul","Aug","Sep","Oct")
-
-temps2 <- temps  %>%
-  filter(Mnth %in% x)
-
-ggplot(temps2, aes(x = Hr, y = degf_avg, group = Hr)) +
-  geom_boxplot() +
-  facet_wrap(vars(Mnth))

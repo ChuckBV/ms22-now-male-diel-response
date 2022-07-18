@@ -84,7 +84,7 @@ trapcodes20
 
 alltemps20 <- left_join(trapcodes20,alltemps20) # parallel with line 44
 head(alltemps20,4)
-#   site site2           Date_time degf_avg degf_lo degf_hi rh_avg
+#         site site2           Date_time degf_avg degf_lo degf_hi rh_avg
 # 1 mikewoolf1    A1 2020-04-22 02:00:00    51.50    50.2    52.5  90.27
 # 2 mikewoolf1    A1 2020-04-22 03:00:00    49.53    48.9    49.8  93.83
 # 3 mikewoolf1    A1 2020-04-22 04:00:00    49.68    48.9    50.4  94.21
