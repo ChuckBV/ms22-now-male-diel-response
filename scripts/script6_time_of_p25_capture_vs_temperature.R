@@ -1,5 +1,8 @@
 #===========================================================================#
-# script5_time_of_median_capture_vs_temperature.R
+# script6_time_of_p25_capture_vs_temperature.R
+#
+# Same thing as script5, except examining hour of p25 capture rather than
+# hour of p50
 # 
 # PARTS
 # 1. df "all" -- Pool non-zero readings by month and hour of day(line 26)  
@@ -15,104 +18,16 @@
 
 library(tidyverse)
 library(lubridate)
+library(scales)
 
 #---------------------------------------------------------------------------#
-#-- 1. df "all" -- Pool non-zero readings by month and hour of day ---------
-#---------------------------------------------------------------------------#
+#-- 1. df "all" -- Pool non-zero readings by month and hour of day ---------#
+#-- 2. df "all2" shift 0 hour back 6 hrs fom 2400 to 1800 ------------------#
+#-- 3. df "all3" Expand from frequency to case form  -----------------------#
 
-# Input is all readings taken over 2 years, including many reports of 
-# zero moths captured. Reduces from 36,055 to 168 observations.
+#   Expanded case form saved in previous iteration, so start from here
 
-all <- read_csv("./data-intermediate/combined_count_temp_all.csv")
-all
-# A tibble: 36,055 x 8
-#   site2    Yr Mnth.x Julian    Hr count Mnth.y degc_avg
-#   <chr> <dbl> <chr>   <dbl> <dbl> <dbl> <chr>     <dbl>
-# 1 A      2019 May       142    15     0 NA         NA  
-# 2 A      2019 May       142    16     0 May        21.6
-# 3 A      2019 May       142    17     0 May        19.8
-
-# Pools all moths captured in 5 traps over 2 years by month and hour of capture
-
-all <- all %>% 
-  group_by(Yr,Mnth.x,Julian,Hr,site2) %>% 
-  summarize(count = sum(count, na.rm = TRUE)) %>% 
-  filter(Mnth.x %in% c("Apr","May","Jun","Jul","Aug","Sep","Oct")) %>% 
-  rename(Mnth = Mnth.x) %>% 
-  filter(count > 0)
-all
-# A tibble: 1,224 x 6
-# Groups:   Yr, Mnth, Julian, Hr [833]
-#      Yr Mnth  Julian    Hr site2 count
-#   <dbl> <chr>  <dbl> <dbl> <chr> <dbl>
-# 1  2019 Apr      114     5 C        12
-# 2  2019 Apr      115     5 C         2
-# 3  2019 Apr      115     6 C         1
-# 4  2019 Apr      116    13 D         7
-
-# Make Mnth into a factor to conserve order
-
-all$Mnth <- factor(all$Mnth, levels = c("Apr","May","Jun","Jul","Aug","Sep","Oct"))
-all
-levels(all$Mnth)
-
-#---------------------------------------------------------------------------#
-#-- 2. df "all2" shift 0 hour back 6 hrs fom 2400 to 1800 ------------------
-#---------------------------------------------------------------------------#
-
-### Algorithm to shift time and date. This is how we did the time shift in
-### script11. See also "julian_date_and_hour_scratch.R". Note that numbering
-### of "combined" data sets in this script is different from script11--don't
-### switch back and forth.
-
-### Anything after midnight and before sundown (6PM) has the Julian date from 
-### the previous day. See "algorithm_julian_date_and_hour.R"
-### Anything after midnight and before sundown (6PM) has the Julian date from 
-### the previous day
-
-all2 <- all %>% 
-  dplyr::mutate(Hr2 = ifelse(Hr >= 18, Hr - 18, Hr + 6),
-                Julian2 = ifelse(Hr >= 18, Julian, Julian - 1)) %>% 
-  dplyr::arrange(Julian,Hr)
-all2
-
-all2[!complete.cases(all2), ]
-#-- Tibble of 0, all complete cases
-
-all2
-# A tibble: 1,224 x 8
-# Groups:   Yr, Mnth, Julian, Hr [833]
-#      Yr Mnth  Julian    Hr site2 count   Hr2 Julian2
-#   <dbl> <fct>  <dbl> <dbl> <chr> <dbl> <dbl>   <dbl>
-# 1  2020 Apr      102     2 A4        1     8     101
-# 2  2020 Apr      102     4 A4        1    10     101
-# 3  2020 Apr      103     3 A4        1     9     102
-# 4  2020 Apr      105     4 A2        1    10     104
-
-#---------------------------------------------------------------------------#
-#-- 3. df "all3" Expand from frequency to case form  -----------------------
-#---------------------------------------------------------------------------#
-
-### Get median observation for Julian2. In order to be certain that median
-### functions correctly, go from frequency table form (moths per hour of)
-### observations) to case format (one observation for each moth)
-
-all3 <- vcdExtra::expand.dft(all2, freq = "count")
-#-- goes from 1224 to 3588 observations
-all3[!complete.cases(all3), ]
-#-- Tibble of 0, all complete cases
-all3
-# A tibble: 3,588 x 7
-# Groups:   Yr, Mnth, Julian, Hr [833]
-#       Yr Mnth  Julian    Hr site2   Hr2 Julian2
-#   <int> <chr>  <int> <int> <chr> <int>   <int>
-# 1  2020 Apr      102     2 A4        8     101
-# 2  2020 Apr      102     4 A4       10     101
-# 3  2020 Apr      103     3 A4        9     102
-
-### vcdExtra cranks awhile to get this, so export this
-write.csv(all3,"./data-intermediate/counts_all_case_form.csv",
-          row.names = FALSE)
+all3 <- read_csv("./data-intermediate/counts_all_case_form.csv")
 
 #---------------------------------------------------------------------------#
 #-- 4. df "all4" Collapses back to nightly median & add back temp dat -------
@@ -120,7 +35,7 @@ write.csv(all3,"./data-intermediate/counts_all_case_form.csv",
 
 all4 <- all3 %>% 
   group_by(Yr,Julian2,site2) %>% 
-  dplyr::summarise(Hr2 = median(Hr2))
+  dplyr::summarise(Hr2 = quantile(Hr2, 0.25))
 all4
 #      Yr Julian2 site2   Hr2
 #   <int>   <int> <chr> <dbl>
@@ -131,20 +46,18 @@ all4
 # 5  2019     117 C       9  
 # 6  2019     119 C      11  
 
-all4[!complete.cases(all4), ]
-#-- Tibble of 0, all complete cases
-
 # all4$Hr2_flr <- floor(all4$Hr2)
 # all4[all4$Hr2 != all4$Hr2_flr, ]
-# A tibble: 64 x 5
-# Groups:   Yr, Julian2 [58]
+# A tibble: 127 x 5
+# Groups:   Yr, Julian2 [99]
 #      Yr Julian2 site2   Hr2 Hr2_flr
-#   <int>   <int> <chr> <dbl>   <dbl>
-# 1  2019     121 C       8.5       8
-# 2  2019     128 C       8.5       8
-# 3  2019     147 C      16.5      16
+#   <dbl>   <dbl> <chr> <dbl>   <dbl>
+# 1  2019     116 C      5.5        5
+# 2  2019     123 C      8.25       8
+# 3  2019     128 C      8.25       8
+# 4  2019     142 A      7.25       7
 
-#   In 12% of cases, the median function returned a 0.5 value
+#   In 22% of cases, the quantile(x, 0.25) function returned a 0.5 value
 
 all4$Hr2 <- floor(all4$Hr2)
 
@@ -204,14 +117,12 @@ all6 <- all6[complete.cases(all6), ]
 #   Mnth and degc_avg missing in some cases. 584 to 558 observations 
 
 all6
-# A tibble: 558 x 6
+# A tibble: 557 x 6
 # Groups:   Yr, Julian2 [242]
 #      Yr Julian2 site2   Hr2 Mnth  degc_avg
 #   <dbl>   <dbl> <chr> <dbl> <chr>    <dbl>
-# 1  2019     142 A         8 May       12.2
+# 1  2019     142 A         7 May       11.5
 # 2  2019     143 A        17 May       24.2
-# 3  2019     144 A        11 May       12.5
-# 4  2019     147 A         8 May       12.4
 
 
 #---------------------------------------------------------------------------#
@@ -237,7 +148,7 @@ p1 <- ggplot(all6, aes(x = degc_avg, y = Hr2)) +
 
 p1
 
-ggsave(filename = "Fig5.jpg", plot = p1, device = "jpg", path = "./results",
+ggsave(filename = "suppl_fig1.jpg", plot = p1, device = "jpg", path = "./results",
        dpi = 300, width = 5.83, height = 5.83, units = "in")
 
 #---------------------------------------------------------------------------#
@@ -265,62 +176,67 @@ Oct <- all6[all6$Mnth == "Oct", ]
 
 ### Correlations for Apr
 cor.test(Apr$degc_avg,Apr$Hr2, method = "spearman")
+# 
 # Spearman's rank correlation rho
 # 
 # data:  Apr$degc_avg and Apr$Hr2
-# S = 3678, p-value = 0.3364
+# S = 3831.9, p-value = 0.2185
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.1817484 
+# 0.2274432 
 nrow(Apr) # 30
 
 ### Correlations for May
 cor.test(May$degc_avg,May$Hr2, method = "spearman")
+# 
 # Spearman's rank correlation rho
 # 
 # data:  May$degc_avg and May$Hr2
-# S = 2917.6, p-value = 0.05726
+# S = 3155.6, p-value = 0.1097
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.3509161 
+# 0.2979796 
 nrow(May) #30
 
 ### Correlations for Jun
 cor.test(Jun$degc_avg,Jun$Hr2, method = "spearman")
+# 
 # Spearman's rank correlation rho
 # 
 # data:  Jun$degc_avg and Jun$Hr2
-# S = 16001, p-value = 0.1055
+# S = 18655, p-value = 0.4715
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.2316619 
+# 0.1041864 
 nrow(Jun) #50
 
 ### Correlations for Jul
-# cor.test(Jul$degc_avg,Jul$Hr2, method = "spearman")
+cor.test(Jul$degc_avg,Jul$Hr2, method = "spearman")
+# 
 # Spearman's rank correlation rho
 # 
 # data:  Jul$degc_avg and Jul$Hr2
-# S = 341525, p-value = 0.1582
+# S = 348072, p-value = 0.0987
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #        rho 
-# -0.1285577 
+# -0.1501906 
 nrow(Jul) #122
 
 ### Correlations for Aug
 cor.test(Aug$degc_avg,Aug$Hr2, method = "spearman")
+# 
 # Spearman's rank correlation rho
 # 
 # data:  Aug$degc_avg and Aug$Hr2
-# S = 1057035, p-value = 0.8457
+# S = 1178584, p-value = 0.06728
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.0143686 
+# -0.135197 
 nrow(Aug) #186
 
 ### Correlations for Sep
@@ -329,11 +245,11 @@ cor.test(Sep$degc_avg,Sep$Hr2, method = "spearman")
 # Spearman's rank correlation rho
 # 
 # data:  Sep$degc_avg and Sep$Hr2
-# S = 190925, p-value = 0.02859
+# S = 203709, p-value = 0.106
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
 #       rho 
-# 0.2060131 
+# 0.1528517 
 nrow(Sep) #113
 
 ### Correlatons for Oct
@@ -342,11 +258,11 @@ cor.test(Oct$degc_avg,Oct$Hr2, method = "spearman")
 # Spearman's rank correlation rho
 # 
 # data:  Oct$degc_avg and Oct$Hr2
-# S = 3672.8, p-value = 0.5473
+# S = 3508.8, p-value = 0.7246
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates:
-#        rho 
-# -0.1211338 
+#         rho 
+# -0.07106818 
 nrow(Oct) #27
 
 

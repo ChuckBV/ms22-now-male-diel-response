@@ -32,6 +32,9 @@ determinatation of the median and boxplots
  - **script5** Manipulate date to get median hour of capture vs. temperature
  at time of median hour by month. Generate Fig5 facet_wrap of scatterplots,
  and perform Pearson correlation by month
+ -  **script6** Repeat script5, but examining the 25th rather than 50th 
+ percentile
+ 
   
 ## Output files
  - Fig2.jpg - Daily count and temperature profile, 2019
