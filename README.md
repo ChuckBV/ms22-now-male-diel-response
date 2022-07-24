@@ -26,18 +26,13 @@ determinatation of the median and boxplots
  - **script1** Infile and clean count data for 2019 and 2020
  - **script2** Infile and clean temperature data for 2019 and 2020
  - **script3** Produce the combine phenology figures, Fig2 and Fig3
- - **script4** Do chisqr test of daytime fliers vs year, KW test of central 
- tendency of male capture by moth, and generate Fig 4 boxplot of time of 
- capture by month.
+ - **script4** Do chisqr test of daytime fliers vs year, Kruskal-Willis test of 
+ central  tendency of male capture by moth, and generate Fig4 boxplot of time 
+ of capture by month.
+ - **script5** Manipulate date to get median hour of capture vs. temperature
+ at time of median hour by month. Generate Fig5 facet_wrap of scatterplots,
+ and perform Pearson correlation by month
   
- Infile to load 4 relevant csv 
- files into dataframes in Global Environment, head these files. Creates
- individual temperature and count profiles for 2019 and 2020, and uses
- ggpubr to combine these into composite graphics ***Fig2.jpg*** and 
- ***Fig3.jpg***
- - **script11_explore_count_and_temperature.R** Creates ***Fig4.jpg***
- - **script12_explore_count_and_temperature2.R** Creates ***Fig5.jpg*** 
- 
 ## Output files
  - Fig2.jpg - Daily count and temperature profile, 2019
  - Fig3.jpg - Daily count and temperature profile, 2020

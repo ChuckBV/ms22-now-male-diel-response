@@ -9,9 +9,6 @@
 # 3. Captures by hour compared between months (line 108)
 #     Fig4.jpg
 #
-# combined--imported as created in script10
-# combined2--adds categorical variable for off hours
-#
 #===========================================================================#
 
 library(tidyverse)
