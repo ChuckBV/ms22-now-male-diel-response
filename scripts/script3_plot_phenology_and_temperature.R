@@ -296,7 +296,7 @@ p3 <- ggplot(temps19, aes(x = Date_time, y = degc_avg)) +
   #scale_x_datetime(breaks = as.Date.POSIXct(c("2020-03-01","2020-04-01","2020-05-01","2020-06-01","2020-07-01","2020-08-01","2020-09-01","2020-10-01"))) +
   scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +
-  ylab("Temperature (degrees Celcius)") +
+  ylab("Temperature (degrees Celsius)") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
         axis.title.x = element_text(color = "black", size = 9),
