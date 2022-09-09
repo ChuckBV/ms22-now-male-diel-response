@@ -22,7 +22,6 @@ library(vcdExtra)
 #-- 1. Load combined count and temperature data into memory --------
 #---------------------------------------------------------------------------#
 
-
 all <- read_csv("./data-intermediate/combined_count_temp_all.csv")
 all
 # A tibble: 36,055 x 8
@@ -124,9 +123,6 @@ all2$Hour <- ifelse(all2$Hr >= 18,all2$Hr - 18,all2$Hr + 6)
 all2$offhrs <- NULL # outlived its usefulness
 all2 <- all2[complete.cases(all2), ]
 
-vcdExtra::expand.dft()
-
-
 ### For median and kruskal-wallis, I need 1 record per moth
 
 # Examine number of moths associated with records
@@ -220,7 +216,7 @@ p0 <- ggplot(all2_case_frm, aes(x = Mnth.x, y = Hour)) +
   geom_boxplot() +
   theme_bw() +
   xlab("Month") +
-  ylab("Hour from sunset") +
+  ylab("Hour from 18:00") +
   theme(axis.text.x = element_text(color = "black", size = 8),# angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 8),
         axis.title.x = element_text(color = "black", size = 10),
