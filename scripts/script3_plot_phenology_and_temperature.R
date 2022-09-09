@@ -319,7 +319,7 @@ p4 <- ggplot(temps20, aes(x = Date_time, y = degc_avg)) +
   theme_bw() +
   scale_x_datetime(breaks = date_breaks("1 month")) +
   xlab("") +
-  ylab("Temperature (degrees Celcius)") +
+  ylab("Temperature (degrees Celsius)") +
   theme(axis.text.x = element_text(color = "black", size = 9, angle = 45, hjust = 1),
         axis.text.y = element_text(color = "black", size = 9),
         axis.title.x = element_text(color = "black", size = 9),
