@@ -2,6 +2,15 @@
 
 Repository: github.org/chuckbv/ms22-now-male-diel-response
 
+This repository provides the data and analysis and generates some figures for
+the journal paper:
+
+Burks et al. 2022, Diel periodicity in males of the navel orangeworm 
+(Lepidoptera: Pyralidae) as revealed by automated camera traps. 
+J. Insect Sci. 22(15):11, https://doi.org/10.1093/jisesa/ieac059
+
+A PDF of the published article is in ./doc
+
 ## Overview
 
 Five remote automated camera traps baited with a pheromone monitoring lure 
